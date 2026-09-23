@@ -72,8 +72,13 @@ namespace InteractiveHorizonBuilder {
         private double X(double az) => left + az / 360.0 * PlotW;
         private double Y(double alt) => top + (90.0 - Math.Max(0, Math.Min(90, alt))) / 90.0 * PlotH;
 
-        protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e) {
-            base.OnMouseLeftButtonDown(e);
+        public StripView() {
+            Cursor = Cursors.Cross;
+            Focusable = true;
+        }
+
+        protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e) {
+            base.OnPreviewMouseLeftButtonDown(e);
             if (PlotW <= 0 || PlotH <= 0) return;
             var p = e.GetPosition(this);
             double az = ((p.X - left) / PlotW) * 360.0;
@@ -82,6 +87,7 @@ namespace InteractiveHorizonBuilder {
             alt = Math.Max(0, Math.Min(90, alt));
             if (PointPickedCommand?.CanExecute(null) == true) {
                 PointPickedCommand.Execute(new Point(az, alt));
+                e.Handled = true;
             }
         }
 
@@ -89,6 +95,7 @@ namespace InteractiveHorizonBuilder {
             double w = ActualWidth, h = ActualHeight;
             if (w <= 0 || h <= 0 || PlotW <= 0 || PlotH <= 0) return;
 
+            dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, w, h));
             dc.DrawRectangle(SkyBrush, null, new Rect(left, top, PlotW, PlotH));
 
             for (int alt = 0; alt <= 90; alt += 15) {

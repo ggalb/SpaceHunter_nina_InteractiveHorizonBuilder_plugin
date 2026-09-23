@@ -65,6 +65,11 @@ namespace InteractiveHorizonBuilder {
         private static Brush Frozen(Color c) { var b = new SolidColorBrush(c); b.Freeze(); return b; }
         private static Pen FrozenPen(Color c, double w) { var p = new Pen(Frozen(c), w); p.Freeze(); return p; }
 
+        public SkyDomeView() {
+            Cursor = Cursors.Cross;
+            Focusable = true;
+        }
+
         private Point Center => new Point(ActualWidth / 2.0, ActualHeight / 2.0);
         private double Radius => Math.Min(ActualWidth, ActualHeight) / 2.0 - 18;
 
@@ -75,8 +80,8 @@ namespace InteractiveHorizonBuilder {
             return new Point(center.X + r * Math.Sin(a), center.Y - r * Math.Cos(a));
         }
 
-        protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e) {
-            base.OnMouseLeftButtonDown(e);
+        protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e) {
+            base.OnPreviewMouseLeftButtonDown(e);
             double radius = Radius;
             if (radius <= 0) return;
             var center = Center;
@@ -90,12 +95,14 @@ namespace InteractiveHorizonBuilder {
             alt = Math.Max(0, Math.Min(90, alt));
             if (PointPickedCommand?.CanExecute(null) == true) {
                 PointPickedCommand.Execute(new Point(az, alt));
+                e.Handled = true;
             }
         }
 
         protected override void OnRender(DrawingContext dc) {
             double w = ActualWidth, h = ActualHeight;
             if (w <= 0 || h <= 0) return;
+            dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, w, h));
             var center = Center;
             double radius = Radius;
             if (radius <= 0) return;
