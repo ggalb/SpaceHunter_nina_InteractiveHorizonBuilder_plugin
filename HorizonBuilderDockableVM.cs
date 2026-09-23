@@ -55,6 +55,8 @@ namespace InteractiveHorizonBuilder {
             AzPlusCommand = new RelayCommand(() => NudgeTarget(NudgeStep, 0));
             AltMinusCommand = new RelayCommand(() => NudgeTarget(0, -NudgeStep));
             AltPlusCommand = new RelayCommand(() => NudgeTarget(0, NudgeStep));
+            TimeMinusCommand = new RelayCommand(() => NudgeTime(-TimeStepMinutes));
+            TimePlusCommand = new RelayCommand(() => NudgeTime(TimeStepMinutes));
 
             telescopeMediator.RegisterConsumer(this);
         }
@@ -84,6 +86,12 @@ namespace InteractiveHorizonBuilder {
         public double NudgeStep {
             get => nudgeStep;
             set { nudgeStep = value; RaisePropertyChanged(); }
+        }
+
+        private double timeStepMinutes = 5.0;
+        public double TimeStepMinutes {
+            get => timeStepMinutes;
+            set { timeStepMinutes = value; RaisePropertyChanged(); }
         }
 
         private string editStatus = "Loaded horizon";
@@ -135,6 +143,8 @@ namespace InteractiveHorizonBuilder {
         public ICommand AzPlusCommand { get; }
         public ICommand AltMinusCommand { get; }
         public ICommand AltPlusCommand { get; }
+        public ICommand TimeMinusCommand { get; }
+        public ICommand TimePlusCommand { get; }
 
         private const double SelectAzTolerance = 5.0;
         private const double SelectAltTolerance = 8.0;
@@ -238,6 +248,48 @@ namespace InteractiveHorizonBuilder {
         private void NudgeTarget(double dAz, double dAlt) {
             TargetAzimuth = ((TargetAzimuth + dAz) % 360 + 360) % 360;
             TargetAltitude = Math.Max(0, Math.Min(90, TargetAltitude + dAlt));
+        }
+
+        /// <summary>
+        /// Time nudge: move the crosshair along the sky track a celestial target at the current
+        /// Az/Alt would follow. Holds the point's declination fixed, advances the hour angle by the
+        /// sidereal amount for the time step, and converts back to Az/Alt at the site latitude.
+        /// Positive minutes = later (the point moves west, as the sky rotates).
+        /// </summary>
+        private void NudgeTime(double deltaMinutes) {
+            double lat = profileService.ActiveProfile.AstrometrySettings.Latitude;
+            const double d2r = Math.PI / 180.0, r2d = 180.0 / Math.PI;
+            double phi = lat * d2r, a = TargetAltitude * d2r, az = TargetAzimuth * d2r;
+
+            double sinDec = Math.Sin(phi) * Math.Sin(a) + Math.Cos(phi) * Math.Cos(a) * Math.Cos(az);
+            sinDec = Math.Max(-1, Math.Min(1, sinDec));
+            double dec = Math.Asin(sinDec);
+            double cosDec = Math.Cos(dec);
+            if (Math.Abs(cosDec) < 1e-6 || Math.Abs(Math.Cos(phi)) < 1e-6) {
+                EditStatus = "Time nudge not defined near the pole/zenith here";
+                return;
+            }
+
+            double sinH = -Math.Sin(az) * Math.Cos(a) / cosDec;
+            double cosH = (Math.Sin(a) - sinDec * Math.Sin(phi)) / (cosDec * Math.Cos(phi));
+            double H = Math.Atan2(sinH, cosH);
+
+            double dTheta = (15.041 / 60.0) * deltaMinutes * d2r; // sidereal deg/min -> rad
+            double H2 = H + dTheta;
+
+            double sinA2 = Math.Sin(phi) * sinDec + Math.Cos(phi) * cosDec * Math.Cos(H2);
+            sinA2 = Math.Max(-1, Math.Min(1, sinA2));
+            double alt2 = Math.Asin(sinA2);
+            double cosAlt2 = Math.Cos(alt2);
+            if (Math.Abs(cosAlt2) < 1e-6) { EditStatus = "Time nudge hit the zenith"; return; }
+
+            double sinAz2 = -Math.Sin(H2) * cosDec / cosAlt2;
+            double cosAz2 = (sinDec - Math.Sin(phi) * Math.Sin(alt2)) / (Math.Cos(phi) * cosAlt2);
+            double az2 = Math.Atan2(sinAz2, cosAz2) * r2d;
+
+            TargetAzimuth = ((az2 % 360) + 360) % 360;
+            TargetAltitude = Math.Max(0, Math.Min(90, alt2 * r2d));
+            EditStatus = $"Time {(deltaMinutes >= 0 ? "+" : "")}{deltaMinutes:F0} min  (Dec held {dec * r2d:F1}°)";
         }
 
         private void PushUndo() => undoStack.Push(Model.Clone());

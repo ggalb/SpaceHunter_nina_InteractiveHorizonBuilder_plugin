@@ -71,12 +71,18 @@
                     <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAzimuth, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock VerticalAlignment="Center" Text="Alt" />
                     <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAltitude, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock VerticalAlignment="Center" Text="Time" />
+                    <TextBox Width="40" Margin="4,0,2,0" Text="{Binding TimeStepMinutes, StringFormat=F0, UpdateSourceTrigger=PropertyChanged}" ToolTip="Time step in minutes (traces the sky/RA track)" />
+                    <TextBlock VerticalAlignment="Center" Text="m " />
+                    <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding TimeMinusCommand}" Content="Time −" />
+                    <Button Margin="0,0,12,0" Padding="6,2" Command="{Binding TimePlusCommand}" Content="Time +" />
                     <TextBlock VerticalAlignment="Center" Text="Step" />
-                    <TextBox Width="44" Margin="4,0,10,0" Text="{Binding NudgeStep, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Width="40" Margin="4,0,2,0" Text="{Binding NudgeStep, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" ToolTip="Az/Alt step in degrees" />
+                    <TextBlock VerticalAlignment="Center" Text="° " />
                     <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AzMinusCommand}" Content="Az −" />
                     <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AzPlusCommand}" Content="Az +" />
-                    <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AltMinusCommand}" Content="Alt −" />
-                    <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AltPlusCommand}" Content="Alt +" />
+                    <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AltMinusCommand}" Content="Alt −" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
+                    <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AltPlusCommand}" Content="Alt +" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
                     <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TargetToMountCommand}" Content="= mount" ToolTip="Copy the current mount Az/Alt into the target/crosshair" />
                     <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding SlewCommand}" Content="Slew" />
                     <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding StopCommand}" Content="STOP" />
