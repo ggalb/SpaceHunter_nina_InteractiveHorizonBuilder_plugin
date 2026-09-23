@@ -1,3 +1,4 @@
+using NINA.Core.Model;
 using NINA.Equipment.Equipment.MyTelescope;
 using NINA.Equipment.Interfaces.Mediator;
 using NINA.Equipment.Interfaces.ViewModel;
@@ -23,7 +24,15 @@ namespace InteractiveHorizonBuilder {
 
             Title = "Interactive Horizon Builder";
 
+            Horizon = profileService.ActiveProfile.AstrometrySettings.Horizon;
+
             telescopeMediator.RegisterConsumer(this);
+        }
+
+        private CustomHorizon horizon;
+        public CustomHorizon Horizon {
+            get => horizon;
+            set { horizon = value; RaisePropertyChanged(); }
         }
 
         private bool mountConnected;
@@ -62,10 +71,13 @@ namespace InteractiveHorizonBuilder {
             MountAzimuth = deviceInfo.Azimuth;
 
             // profileService is the protected field on BaseVM.
-            var horizon = profileService.ActiveProfile.AstrometrySettings.Horizon;
-            HorizonLoaded = horizon != null;
-            if (horizon != null) {
-                HorizonAltitudeAtMount = horizon.GetAltitude(deviceInfo.Azimuth);
+            var current = profileService.ActiveProfile.AstrometrySettings.Horizon;
+            if (!ReferenceEquals(current, Horizon)) {
+                Horizon = current;
+            }
+            HorizonLoaded = current != null;
+            if (current != null) {
+                HorizonAltitudeAtMount = current.GetAltitude(deviceInfo.Azimuth);
             }
         }
 
