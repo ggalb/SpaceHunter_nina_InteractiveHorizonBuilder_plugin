@@ -85,8 +85,9 @@ namespace InteractiveHorizonBuilder {
             double alt = 90.0 - ((p.Y - top) / PlotH) * 90.0;
             az = ((az % 360) + 360) % 360;
             alt = Math.Max(0, Math.Min(90, alt));
-            if (PointPickedCommand?.CanExecute(null) == true) {
-                PointPickedCommand.Execute(new Point(az, alt));
+            var arg = new Point(az, alt);
+            if (PointPickedCommand != null && PointPickedCommand.CanExecute(arg)) {
+                PointPickedCommand.Execute(arg);
                 e.Handled = true;
             }
         }
