@@ -1,0 +1,50 @@
+<ResourceDictionary
+    x:Class="InteractiveHorizonBuilder.DockableTemplate"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--  Naming convention required by N.I.N.A.: "<Fully.Qualified.VMTypeName>_Dockable"  -->
+    <DataTemplate x:Key="InteractiveHorizonBuilder.HorizonBuilderDockableVM_Dockable">
+        <StackPanel Margin="10" Orientation="Vertical">
+            <TextBlock
+                Margin="0,0,0,10"
+                FontSize="16"
+                FontWeight="Bold"
+                Text="Interactive Horizon Builder" />
+            <TextBlock
+                Margin="0,0,0,10"
+                Foreground="Gray"
+                TextWrapping="Wrap"
+                Text="Phase 1 - SDK wiring check. Live mount position and active custom horizon, read straight from N.I.N.A." />
+
+            <Grid Margin="0,4,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Mount connected" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MountConnected}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Mount azimuth (deg)" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MountAzimuth, StringFormat=F2}" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Mount altitude (deg)" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MountAltitude, StringFormat=F2}" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Custom horizon loaded" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding HorizonLoaded}" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Horizon alt at mount az (deg)" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding HorizonAltitudeAtMount, StringFormat=F2}" />
+            </Grid>
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>

@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>InteractiveHorizonBuilder</RootNamespace>
+    <AssemblyName>InteractiveHorizonBuilder</AssemblyName>
+
+    <AssemblyTitle>Interactive Horizon Builder</AssemblyTitle>
+    <Title>Interactive Horizon Builder</Title>
+    <Authors>Space Hunter - Georg G Albrecht</Authors>
+    <Company>Space Hunter - Georg G Albrecht</Company>
+    <Product>Interactive Horizon Builder</Product>
+    <Description>Build and verify N.I.N.A. custom horizons interactively: a Sky Dome + Strip dockable panel that slews to horizon points, takes a check frame, and edits the horizon - using N.I.N.A.'s own mount, camera, flat and switch, with no external bridge.</Description>
+    <Copyright>Copyright © 2026 Space Hunter - Georg G Albrecht</Copyright>
+
+    <!-- Local install of N.I.N.A. used as the compile-time reference source (no NuGet/network needed). -->
+    <NinaInstallDir>C:\Program Files\N.I.N.A. - Nighttime Imaging 'N' Astronomy</NinaInstallDir>
+    <NinaPluginVersion>3.0.0</NinaPluginVersion>
+    <NinaPluginName>Interactive Horizon Builder</NinaPluginName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Referenced directly from the local N.I.N.A. install; Private=false so these are not copied
+         into the plugin output (they already exist in N.I.N.A.'s folder at runtime). -->
+    <Reference Include="NINA.Core">
+      <HintPath>$(NinaInstallDir)\NINA.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NINA.Astrometry">
+      <HintPath>$(NinaInstallDir)\NINA.Astrometry.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NINA.Equipment">
+      <HintPath>$(NinaInstallDir)\NINA.Equipment.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NINA.Profile">
+      <HintPath>$(NinaInstallDir)\NINA.Profile.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NINA.Sequencer">
+      <HintPath>$(NinaInstallDir)\NINA.Sequencer.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NINA.WPF.Base">
+      <HintPath>$(NinaInstallDir)\NINA.WPF.Base.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NINA.CustomControlLibrary">
+      <HintPath>$(NinaInstallDir)\NINA.CustomControlLibrary.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="NINA.Plugin">
+      <HintPath>$(NinaInstallDir)\NINA.Plugin.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition">
+      <HintPath>$(NinaInstallDir)\System.ComponentModel.Composition.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="CommunityToolkit.Mvvm">
+      <HintPath>$(NinaInstallDir)\CommunityToolkit.Mvvm.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" ExcludeAssets="runtime;compile;native;contentFiles;build;buildMultitargeting;buildTransitive" IncludeAssets="analyzers" PrivateAssets="all" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(NinaInstallDir)\Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Debug builds drop straight into N.I.N.A.'s plugin folder; just restart N.I.N.A. to reload. -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Debug'">
+    <MakeDir Directories="$(LocalAppData)\NINA\Plugins\$(NinaPluginVersion)\$(NinaPluginName)" Condition="!Exists('$(LocalAppData)\NINA\Plugins\$(NinaPluginVersion)\$(NinaPluginName)')" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(LocalAppData)\NINA\Plugins\$(NinaPluginVersion)\$(NinaPluginName)" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(LocalAppData)\NINA\Plugins\$(NinaPluginVersion)\$(NinaPluginName)" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+  </Target>
+
+</Project>
