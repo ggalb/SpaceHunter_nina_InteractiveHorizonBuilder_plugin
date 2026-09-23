@@ -11,6 +11,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="200" />
             </Grid.RowDefinitions>
 
             <TextBlock
@@ -44,6 +45,13 @@
                     MountAltitude="{Binding MountAltitude}"
                     MountAzimuth="{Binding MountAzimuth}" />
             </Viewbox>
+
+            <local:StripView
+                Grid.Row="3"
+                Margin="0,8,0,0"
+                Horizon="{Binding Horizon}"
+                MountAltitude="{Binding MountAltitude}"
+                MountAzimuth="{Binding MountAzimuth}" />
         </Grid>
     </DataTemplate>
 </ResourceDictionary>
