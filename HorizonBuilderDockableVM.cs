@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using NINA.Astrometry;
 using NINA.Core.Model;
 using NINA.Equipment.Equipment.MyTelescope;
+using NINA.Equipment.Interfaces;
 using NINA.Equipment.Interfaces.Mediator;
 using NINA.Equipment.Interfaces.ViewModel;
 using NINA.Profile.Interfaces;
@@ -27,13 +28,28 @@ namespace InteractiveHorizonBuilder {
     [Export(typeof(IDockableVM))]
     public class HorizonBuilderDockableVM : DockableVM, ITelescopeConsumer {
         private readonly ITelescopeMediator telescopeMediator;
+        private readonly IFocuserMediator focuserMediator;
+        private readonly IRotatorMediator rotatorMediator;
+        private readonly IFlatDeviceMediator flatDeviceMediator;
+        private readonly ISwitchMediator switchMediator;
         private CancellationTokenSource slewCts;
         private readonly Stack<HorizonModel> undoStack = new Stack<HorizonModel>();
+        private static readonly IProgress<ApplicationStatus> NoProgress = new Progress<ApplicationStatus>();
 
         [ImportingConstructor]
-        public HorizonBuilderDockableVM(IProfileService profileService, ITelescopeMediator telescopeMediator)
+        public HorizonBuilderDockableVM(
+            IProfileService profileService,
+            ITelescopeMediator telescopeMediator,
+            IFocuserMediator focuserMediator,
+            IRotatorMediator rotatorMediator,
+            IFlatDeviceMediator flatDeviceMediator,
+            ISwitchMediator switchMediator)
             : base(profileService) {
             this.telescopeMediator = telescopeMediator;
+            this.focuserMediator = focuserMediator;
+            this.rotatorMediator = rotatorMediator;
+            this.flatDeviceMediator = flatDeviceMediator;
+            this.switchMediator = switchMediator;
 
             Title = "Interactive Horizon Builder";
 
@@ -57,6 +73,13 @@ namespace InteractiveHorizonBuilder {
             AltPlusCommand = new RelayCommand(() => NudgeTarget(0, NudgeStep));
             TimeMinusCommand = new RelayCommand(() => NudgeTime(-TimeStepMinutes));
             TimePlusCommand = new RelayCommand(() => NudgeTime(TimeStepMinutes));
+
+            MoveFocuserCommand = new AsyncRelayCommand(MoveFocuserAsync);
+            RotateToCommand = new AsyncRelayCommand<string>(RotateToAsync);
+            FlatOpenCommand = new AsyncRelayCommand(() => FlatCoverAsync(true));
+            FlatCloseCommand = new AsyncRelayCommand(() => FlatCoverAsync(false));
+            DustCoverOnCommand = new AsyncRelayCommand(() => DustCoverAsync(true));
+            DustCoverOffCommand = new AsyncRelayCommand(() => DustCoverAsync(false));
 
             telescopeMediator.RegisterConsumer(this);
         }
@@ -145,6 +168,13 @@ namespace InteractiveHorizonBuilder {
         public ICommand AltPlusCommand { get; }
         public ICommand TimeMinusCommand { get; }
         public ICommand TimePlusCommand { get; }
+
+        public ICommand MoveFocuserCommand { get; }
+        public ICommand RotateToCommand { get; }
+        public ICommand FlatOpenCommand { get; }
+        public ICommand FlatCloseCommand { get; }
+        public ICommand DustCoverOnCommand { get; }
+        public ICommand DustCoverOffCommand { get; }
 
         private const double SelectAzTolerance = 5.0;
         private const double SelectAltTolerance = 8.0;
@@ -301,6 +331,102 @@ namespace InteractiveHorizonBuilder {
             }
         }
 
+        // ---- Devices: focuser / rotator / flat / dust-cover switch -------------
+
+        private int focuserTargetPosition;
+        public int FocuserTargetPosition { get => focuserTargetPosition; set { focuserTargetPosition = value; RaisePropertyChanged(); } }
+
+        private string focuserState = "-";
+        public string FocuserState { get => focuserState; set { focuserState = value; RaisePropertyChanged(); } }
+
+        private string rotatorState = "-";
+        public string RotatorState { get => rotatorState; set { rotatorState = value; RaisePropertyChanged(); } }
+
+        private string flatState = "-";
+        public string FlatState { get => flatState; set { flatState = value; RaisePropertyChanged(); } }
+
+        private string dustCoverState = "-";
+        public string DustCoverState { get => dustCoverState; set { dustCoverState = value; RaisePropertyChanged(); } }
+
+        private string deviceStatus = "Idle";
+        public string DeviceStatus { get => deviceStatus; set { deviceStatus = value; RaisePropertyChanged(); } }
+
+        private void RefreshDevices() {
+            try {
+                var f = focuserMediator.GetInfo();
+                FocuserState = f != null && f.Connected ? f.Position.ToString() : "not connected";
+            } catch { FocuserState = "-"; }
+            try {
+                var r = rotatorMediator.GetInfo();
+                RotatorState = r != null && r.Connected ? $"{r.MechanicalPosition:F1}°" : "not connected";
+            } catch { RotatorState = "-"; }
+            try {
+                var fl = flatDeviceMediator.GetInfo();
+                FlatState = fl != null && fl.Connected ? fl.CoverState.ToString() : "not connected";
+            } catch { FlatState = "-"; }
+            try {
+                var sw = FindDustCover();
+                DustCoverState = sw == null ? "not found"
+                    : (Math.Abs(sw.Value - sw.Maximum) < Math.Abs(sw.Value - sw.Minimum) ? "On" : "Off");
+            } catch { DustCoverState = "-"; }
+        }
+
+        private IWritableSwitch FindDustCover() {
+            var info = switchMediator.GetInfo();
+            if (info == null || !info.Connected || info.WritableSwitches == null) return null;
+            return info.WritableSwitches.FirstOrDefault(s =>
+                (s.Name ?? "").IndexOf("dust", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                (s.Name ?? "").IndexOf("cover", StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        private async Task MoveFocuserAsync() {
+            try {
+                var f = focuserMediator.GetInfo();
+                if (f == null || !f.Connected) { DeviceStatus = "Focuser not connected"; return; }
+                DeviceStatus = $"Focuser -> {FocuserTargetPosition}...";
+                await focuserMediator.MoveFocuser(FocuserTargetPosition, CancellationToken.None);
+                DeviceStatus = "Focuser moved";
+                RefreshDevices();
+            } catch (Exception ex) { DeviceStatus = "Focuser error: " + ex.Message; }
+        }
+
+        private async Task RotateToAsync(string angleText) {
+            try {
+                if (!float.TryParse(angleText, System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out var angle)) return;
+                var r = rotatorMediator.GetInfo();
+                if (r == null || !r.Connected) { DeviceStatus = "Rotator not connected"; return; }
+                DeviceStatus = $"Rotator -> {angle:F0}°...";
+                await rotatorMediator.MoveMechanical(angle, CancellationToken.None);
+                DeviceStatus = $"Rotator at {angle:F0}°";
+                RefreshDevices();
+            } catch (Exception ex) { DeviceStatus = "Rotator error: " + ex.Message; }
+        }
+
+        private async Task FlatCoverAsync(bool open) {
+            try {
+                var fl = flatDeviceMediator.GetInfo();
+                if (fl == null || !fl.Connected) { DeviceStatus = "Flat panel not connected"; return; }
+                DeviceStatus = open ? "Opening flat..." : "Closing flat...";
+                if (open) await flatDeviceMediator.OpenCover(NoProgress, CancellationToken.None);
+                else await flatDeviceMediator.CloseCover(NoProgress, CancellationToken.None);
+                DeviceStatus = open ? "Flat opened" : "Flat closed";
+                RefreshDevices();
+            } catch (Exception ex) { DeviceStatus = "Flat error: " + ex.Message; }
+        }
+
+        private async Task DustCoverAsync(bool on) {
+            try {
+                var sw = FindDustCover();
+                if (sw == null) { DeviceStatus = "Dust-cover switch not found"; return; }
+                double value = on ? sw.Maximum : sw.Minimum;
+                DeviceStatus = on ? "Dust cover on..." : "Dust cover off...";
+                await switchMediator.SetSwitchValue(sw.Id, value, NoProgress, CancellationToken.None);
+                DeviceStatus = on ? "Dust cover on" : "Dust cover off";
+                RefreshDevices();
+            } catch (Exception ex) { DeviceStatus = "Dust-cover error: " + ex.Message; }
+        }
+
         // ---- Mount control (Phase 3) -------------------------------------------
 
         private async Task SlewToTargetAsync() {
@@ -360,6 +486,8 @@ namespace InteractiveHorizonBuilder {
             if (Model.Points.Count > 0) {
                 HorizonAltitudeAtMount = Model.GetAltitude(deviceInfo.Azimuth);
             }
+
+            RefreshDevices();
         }
 
         public void Dispose() {

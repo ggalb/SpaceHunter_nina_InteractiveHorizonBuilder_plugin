@@ -14,6 +14,7 @@
                 <RowDefinition Height="200" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <TextBlock
@@ -101,6 +102,38 @@
                     <Button Margin="0,0,6,0" Padding="12,2" Command="{Binding SaveCommand}" Content="Save" ToolTip="Write the .hrz and reload it into N.I.N.A." />
                 </WrapPanel>
                 <TextBlock Margin="0,6,0,0" Foreground="#ED9F27" Text="{Binding EditStatus, StringFormat='Edit: {0}'}" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="6" Margin="0,8,0,0" Orientation="Vertical">
+                <WrapPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="Focuser " />
+                    <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FocuserState}" />
+                    <TextBlock VerticalAlignment="Center" Text="  →  " />
+                    <TextBox Width="70" Margin="0,0,4,0" Text="{Binding FocuserTargetPosition, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Margin="0,0,14,0" Padding="8,2" Command="{Binding MoveFocuserCommand}" Content="Move" />
+
+                    <TextBlock VerticalAlignment="Center" Text="Rotator " />
+                    <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding RotatorState}" />
+                    <TextBlock VerticalAlignment="Center" Text="  " />
+                    <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="0" Content="0°" ToolTip="Landscape" />
+                    <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="315" Content="315°" />
+                    <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="45" Content="45°" />
+                    <Button Margin="0,0,14,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="90" Content="90°" />
+                </WrapPanel>
+                <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="Main flat " />
+                    <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FlatState}" />
+                    <TextBlock VerticalAlignment="Center" Text="  " />
+                    <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding FlatOpenCommand}" Content="Open" />
+                    <Button Margin="0,0,14,0" Padding="8,2" Command="{Binding FlatCloseCommand}" Content="Close" />
+
+                    <TextBlock VerticalAlignment="Center" Text="Guide dust cover " />
+                    <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding DustCoverState}" />
+                    <TextBlock VerticalAlignment="Center" Text="  " />
+                    <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOnCommand}" Content="On" />
+                    <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOffCommand}" Content="Off" />
+                </WrapPanel>
+                <TextBlock Margin="0,6,0,0" Foreground="Gray" Text="{Binding DeviceStatus, StringFormat='Devices: {0}'}" />
             </StackPanel>
         </Grid>
     </DataTemplate>
