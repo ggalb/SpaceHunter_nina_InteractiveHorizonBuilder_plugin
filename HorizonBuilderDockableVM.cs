@@ -4,6 +4,7 @@ using NINA.Core.Model;
 using NINA.Equipment.Equipment.MyTelescope;
 using NINA.Equipment.Interfaces;
 using NINA.Equipment.Interfaces.Mediator;
+using NINA.Equipment.Model;
 using NINA.Equipment.Interfaces.ViewModel;
 using NINA.Profile.Interfaces;
 using NINA.WPF.Base.ViewModel;
@@ -32,7 +33,11 @@ namespace InteractiveHorizonBuilder {
         private readonly IRotatorMediator rotatorMediator;
         private readonly IFlatDeviceMediator flatDeviceMediator;
         private readonly ISwitchMediator switchMediator;
+        private readonly ICameraMediator cameraMediator;
+        private readonly IImagingMediator imagingMediator;
+        private readonly IGuiderMediator guiderMediator;
         private CancellationTokenSource slewCts;
+        private CancellationTokenSource captureCts;
         private readonly Stack<HorizonModel> undoStack = new Stack<HorizonModel>();
         private static readonly IProgress<ApplicationStatus> NoProgress = new Progress<ApplicationStatus>();
 
@@ -43,13 +48,19 @@ namespace InteractiveHorizonBuilder {
             IFocuserMediator focuserMediator,
             IRotatorMediator rotatorMediator,
             IFlatDeviceMediator flatDeviceMediator,
-            ISwitchMediator switchMediator)
+            ISwitchMediator switchMediator,
+            ICameraMediator cameraMediator,
+            IImagingMediator imagingMediator,
+            IGuiderMediator guiderMediator)
             : base(profileService) {
             this.telescopeMediator = telescopeMediator;
             this.focuserMediator = focuserMediator;
             this.rotatorMediator = rotatorMediator;
             this.flatDeviceMediator = flatDeviceMediator;
             this.switchMediator = switchMediator;
+            this.cameraMediator = cameraMediator;
+            this.imagingMediator = imagingMediator;
+            this.guiderMediator = guiderMediator;
 
             Title = "Interactive Horizon Builder";
 
@@ -80,6 +91,10 @@ namespace InteractiveHorizonBuilder {
             FlatCloseCommand = new AsyncRelayCommand(() => FlatCoverAsync(false));
             DustCoverOnCommand = new AsyncRelayCommand(() => DustCoverAsync(true));
             DustCoverOffCommand = new AsyncRelayCommand(() => DustCoverAsync(false));
+
+            CaptureCommand = new AsyncRelayCommand(CaptureAsync);
+            AbortCaptureCommand = new RelayCommand(() => captureCts?.Cancel());
+            ConnectGuiderCommand = new AsyncRelayCommand(ConnectGuiderAsync);
 
             telescopeMediator.RegisterConsumer(this);
         }
@@ -175,6 +190,9 @@ namespace InteractiveHorizonBuilder {
         public ICommand FlatCloseCommand { get; }
         public ICommand DustCoverOnCommand { get; }
         public ICommand DustCoverOffCommand { get; }
+        public ICommand CaptureCommand { get; }
+        public ICommand AbortCaptureCommand { get; }
+        public ICommand ConnectGuiderCommand { get; }
 
         private const double SelectAzTolerance = 5.0;
         private const double SelectAltTolerance = 8.0;
@@ -425,6 +443,62 @@ namespace InteractiveHorizonBuilder {
                 DeviceStatus = on ? "Dust cover on" : "Dust cover off";
                 RefreshDevices();
             } catch (Exception ex) { DeviceStatus = "Dust-cover error: " + ex.Message; }
+        }
+
+        // ---- Main camera check frame + PHD2 ------------------------------------
+
+        private double cameraExposure = 2.0;
+        public double CameraExposure { get => cameraExposure; set { cameraExposure = value; RaisePropertyChanged(); } }
+
+        private int cameraGain = 100;
+        public int CameraGain { get => cameraGain; set { cameraGain = value; RaisePropertyChanged(); } }
+
+        private System.Windows.Media.Imaging.BitmapSource lastFrame;
+        public System.Windows.Media.Imaging.BitmapSource LastFrame { get => lastFrame; set { lastFrame = value; RaisePropertyChanged(); } }
+
+        private string cameraStatus = "Idle";
+        public string CameraStatus { get => cameraStatus; set { cameraStatus = value; RaisePropertyChanged(); } }
+
+        private string guiderState = "-";
+        public string GuiderState { get => guiderState; set { guiderState = value; RaisePropertyChanged(); } }
+
+        private async Task CaptureAsync() {
+            try {
+                var info = cameraMediator.GetInfo();
+                if (info == null || !info.Connected) { CameraStatus = "Camera not connected"; return; }
+
+                var seq = new CaptureSequence {
+                    ExposureTime = CameraExposure,
+                    ImageType = CaptureSequence.ImageTypes.SNAPSHOT,
+                    Gain = CameraGain,
+                    TotalExposureCount = 1
+                };
+
+                captureCts?.Dispose();
+                captureCts = new CancellationTokenSource();
+                CameraStatus = $"Capturing {CameraExposure:0.##}s @ gain {CameraGain}...";
+                var rendered = await imagingMediator.CaptureAndPrepareImage(
+                    seq, new NINA.Core.Utility.PrepareImageParameters(true, false), captureCts.Token, NoProgress);
+
+                var image = rendered?.Image;
+                if (image != null && image.CanFreeze && !image.IsFrozen) image.Freeze();
+                LastFrame = image;
+                CameraStatus = image != null ? "Frame captured - judge clear/obstructed by eye" : "No image returned";
+            } catch (OperationCanceledException) {
+                CameraStatus = "Capture aborted";
+            } catch (Exception ex) {
+                CameraStatus = "Capture error: " + ex.Message;
+            }
+        }
+
+        private async Task ConnectGuiderAsync() {
+            try {
+                GuiderState = "Connecting PHD2...";
+                var ok = await guiderMediator.Connect();
+                GuiderState = ok ? "PHD2 connected" : "PHD2 connect failed";
+            } catch (Exception ex) {
+                GuiderState = "PHD2 error: " + ex.Message;
+            }
         }
 
         // ---- Mount control (Phase 3) -------------------------------------------

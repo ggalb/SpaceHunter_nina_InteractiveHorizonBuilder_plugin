@@ -42,6 +42,10 @@
       <HintPath>$(NinaInstallDir)\NINA.Equipment.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="NINA.Image">
+      <HintPath>$(NinaInstallDir)\NINA.Image.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="NINA.Profile">
       <HintPath>$(NinaInstallDir)\NINA.Profile.dll</HintPath>
       <Private>false</Private>
