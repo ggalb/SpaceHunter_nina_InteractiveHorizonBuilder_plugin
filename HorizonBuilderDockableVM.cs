@@ -6,6 +6,7 @@ using NINA.Equipment.Interfaces;
 using NINA.Equipment.Interfaces.Mediator;
 using NINA.Equipment.Model;
 using NINA.Equipment.Interfaces.ViewModel;
+using NINA.Profile;
 using NINA.Profile.Interfaces;
 using NINA.WPF.Base.ViewModel;
 using System;
@@ -43,6 +44,8 @@ namespace InteractiveHorizonBuilder {
         private CancellationTokenSource captureCts;
         private readonly Stack<HorizonModel> undoStack = new Stack<HorizonModel>();
         private readonly DispatcherTimer sunTimer;
+        private readonly IPluginOptionsAccessor pluginSettings;
+        private static readonly Guid PluginGuid = Guid.Parse("b3d4e2a1-7c6f-4a2b-9e10-2f8c5a1d3b44");
         private static readonly IProgress<ApplicationStatus> NoProgress = new Progress<ApplicationStatus>();
 
         [ImportingConstructor]
@@ -67,6 +70,9 @@ namespace InteractiveHorizonBuilder {
             this.guiderMediator = guiderMediator;
 
             Title = "Interactive Horizon Builder";
+
+            pluginSettings = new PluginOptionsAccessor(profileService, PluginGuid);
+            notes = pluginSettings.GetValueString(nameof(Notes), "");
 
             Model = HorizonModel.Load(profileService.ActiveProfile.AstrometrySettings.HorizonFilePath);
             HorizonLoaded = Model.Points.Count > 0;
@@ -148,6 +154,12 @@ namespace InteractiveHorizonBuilder {
         public string EditStatus {
             get => editStatus;
             set { editStatus = value; RaisePropertyChanged(); }
+        }
+
+        private string notes;
+        public string Notes {
+            get => notes;
+            set { notes = value; RaisePropertyChanged(); pluginSettings?.SetValueString(nameof(Notes), value ?? ""); }
         }
 
         // ---- Live mount state --------------------------------------------------

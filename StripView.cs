@@ -45,8 +45,13 @@ namespace InteractiveHorizonBuilder {
             DependencyProperty.Register(nameof(SunAltitude), typeof(double), typeof(StripView),
                 new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
 
+        public static readonly DependencyProperty SunPathProperty =
+            DependencyProperty.Register(nameof(SunPath), typeof(PointCollection), typeof(StripView),
+                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
         public double SunAzimuth { get => (double)GetValue(SunAzimuthProperty); set => SetValue(SunAzimuthProperty, value); }
         public double SunAltitude { get => (double)GetValue(SunAltitudeProperty); set => SetValue(SunAltitudeProperty, value); }
+        public PointCollection SunPath { get => (PointCollection)GetValue(SunPathProperty); set => SetValue(SunPathProperty, value); }
 
         public HorizonModel Horizon { get => (HorizonModel)GetValue(HorizonProperty); set => SetValue(HorizonProperty, value); }
         public double MountAzimuth { get => (double)GetValue(MountAzimuthProperty); set => SetValue(MountAzimuthProperty, value); }
@@ -195,6 +200,20 @@ namespace InteractiveHorizonBuilder {
                     double x = X(maz);
                     dc.DrawLine(MountPen, new Point(x, top), new Point(x, top + PlotH));
                     dc.DrawEllipse(MountBrush, null, new Point(x, Y(MountAltitude)), 3.5, 3.5);
+                }
+            }
+
+            if (SunPath != null && SunPath.Count > 1) {
+                double prevAz = double.NaN;
+                Point prev = default;
+                foreach (var sp in SunPath) {
+                    double az = ((sp.X % 360) + 360) % 360;
+                    var cur = new Point(X(az), Y(sp.Y));
+                    if (!double.IsNaN(prevAz) && Math.Abs(az - prevAz) <= 180 &&
+                        az >= viewAzLo && az <= viewAzHi && prevAz >= viewAzLo && prevAz <= viewAzHi) {
+                        dc.DrawLine(SunPen, prev, cur);
+                    }
+                    prevAz = az; prev = cur;
                 }
             }
 
