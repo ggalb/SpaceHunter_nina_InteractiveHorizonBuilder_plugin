@@ -72,6 +72,8 @@ namespace InteractiveHorizonBuilder {
         private static readonly Pen CrosshairPen = FrozenPen(Color.FromRgb(0xFF, 0xFF, 0xFF), 1.0);
         private static readonly Brush SunBrush = Frozen(Color.FromRgb(0xFF, 0xD1, 0x00));
         private static readonly Pen SunPen = FrozenDashPen(Color.FromRgb(0xE0, 0xA4, 0x00), 1.0);
+        private static readonly Pen Ring15Pen = FrozenDashPen(Color.FromRgb(0xE2, 0x4B, 0x4A), 1.5);
+        private static readonly Pen Ring30Pen = FrozenDashPen(Color.FromRgb(0xED, 0xA1, 0x00), 1.5);
 
         private static Brush Frozen(Color c) { var b = new SolidColorBrush(c); b.Freeze(); return b; }
         private static Pen FrozenPen(Color c, double w) { var p = new Pen(Frozen(c), w); p.Freeze(); return p; }
@@ -197,6 +199,8 @@ namespace InteractiveHorizonBuilder {
             }
 
             if (!double.IsNaN(SunAzimuth) && !double.IsNaN(SunAltitude) && SunAltitude >= 0) {
+                DrawSphericalRing(dc, SunAltitude, SunAzimuth, 30, Ring30Pen);
+                DrawSphericalRing(dc, SunAltitude, SunAzimuth, 15, Ring15Pen);
                 double saz = ((SunAzimuth % 360) + 360) % 360;
                 if (saz >= viewAzLo && saz <= viewAzHi) {
                     double x = X(saz);
@@ -222,6 +226,28 @@ namespace InteractiveHorizonBuilder {
             DrawCardinal(dc, "S", 180);
             DrawCardinal(dc, "W", 270);
             DrawCardinal(dc, "N", 360);
+        }
+
+        private void DrawSphericalRing(DrawingContext dc, double altC, double azC, double theta, Pen pen) {
+            double d2r = Math.PI / 180.0;
+            double aC = altC * d2r, thr = theta * d2r;
+            double prevAz = double.NaN;
+            Point prev = default;
+            for (int b = 0; b <= 360; b += 6) {
+                double br = b * d2r;
+                double sinAlt = Math.Sin(aC) * Math.Cos(thr) + Math.Cos(aC) * Math.Sin(thr) * Math.Cos(br);
+                sinAlt = Math.Max(-1, Math.Min(1, sinAlt));
+                double alt = Math.Asin(sinAlt) / d2r;
+                double az = azC + Math.Atan2(Math.Sin(br) * Math.Sin(thr) * Math.Cos(aC),
+                                             Math.Cos(thr) - Math.Sin(aC) * sinAlt) / d2r;
+                az = ((az % 360) + 360) % 360;
+                var cur = new Point(X(az), Y(alt));
+                if (!double.IsNaN(prevAz) && Math.Abs(az - prevAz) <= 180 &&
+                    az >= viewAzLo && az <= viewAzHi && prevAz >= viewAzLo && prevAz <= viewAzHi) {
+                    dc.DrawLine(pen, prev, cur);
+                }
+                prevAz = az; prev = cur;
+            }
         }
 
         private void DrawCardinal(DrawingContext dc, string label, double az) {
