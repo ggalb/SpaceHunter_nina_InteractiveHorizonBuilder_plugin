@@ -7,10 +7,10 @@ using System.Windows.Media;
 namespace InteractiveHorizonBuilder {
 
     /// <summary>
-    /// Strip view: azimuth (x, 0-360, N-E-S-W-N) by altitude (y, 0-90) - the single-valued horizon
-    /// as N.I.N.A. reads it. Draws the editable model (fill + line + point dots), the live mount, a
-    /// crosshair (edit cursor), and the selected point; clicking reports an az/alt back via
-    /// PointPickedCommand. Companion to <see cref="SkyDomeView"/>.
+    /// Strip view: azimuth (x) by altitude (y) - the single-valued horizon as N.I.N.A. reads it.
+    /// Draws the editable model (fill + line + point dots), the live mount, a crosshair, and the
+    /// selected point; clicking reports an az/alt back via PointPickedCommand. Mouse wheel zooms
+    /// around the pointer; right-click resets to the full 0-360 / 0-90 view.
     /// </summary>
     public class StripView : FrameworkElement {
 
@@ -66,11 +66,12 @@ namespace InteractiveHorizonBuilder {
         private static Pen FrozenPen(Color c, double w) { var p = new Pen(Frozen(c), w); p.Freeze(); return p; }
 
         private double left = 28, right = 8, top = 6, bottom = 20;
+        private double viewAzLo = 0, viewAzHi = 360, viewAltLo = 0, viewAltHi = 90;
 
         private double PlotW => ActualWidth - left - right;
         private double PlotH => ActualHeight - top - bottom;
-        private double X(double az) => left + az / 360.0 * PlotW;
-        private double Y(double alt) => top + (90.0 - Math.Max(0, Math.Min(90, alt))) / 90.0 * PlotH;
+        private double X(double az) => left + (az - viewAzLo) / (viewAzHi - viewAzLo) * PlotW;
+        private double Y(double alt) => top + (viewAltHi - alt) / (viewAltHi - viewAltLo) * PlotH;
 
         public StripView() {
             Cursor = Cursors.Cross;
@@ -81,8 +82,8 @@ namespace InteractiveHorizonBuilder {
             base.OnPreviewMouseLeftButtonDown(e);
             if (PlotW <= 0 || PlotH <= 0) return;
             var p = e.GetPosition(this);
-            double az = ((p.X - left) / PlotW) * 360.0;
-            double alt = 90.0 - ((p.Y - top) / PlotH) * 90.0;
+            double az = viewAzLo + (p.X - left) / PlotW * (viewAzHi - viewAzLo);
+            double alt = viewAltHi - (p.Y - top) / PlotH * (viewAltHi - viewAltLo);
             az = ((az % 360) + 360) % 360;
             alt = Math.Max(0, Math.Min(90, alt));
             var arg = new Point(az, alt);
@@ -92,65 +93,119 @@ namespace InteractiveHorizonBuilder {
             }
         }
 
+        protected override void OnMouseWheel(MouseWheelEventArgs e) {
+            base.OnMouseWheel(e);
+            if (PlotW <= 0 || PlotH <= 0) return;
+            var p = e.GetPosition(this);
+            double azP = viewAzLo + (p.X - left) / PlotW * (viewAzHi - viewAzLo);
+            double altP = viewAltHi - (p.Y - top) / PlotH * (viewAltHi - viewAltLo);
+            double f = e.Delta > 0 ? 0.85 : 1.0 / 0.85;
+            ZoomAxis(ref viewAzLo, ref viewAzHi, azP, f, 10, 360, 0, 360);
+            ZoomAxis(ref viewAltLo, ref viewAltHi, altP, f, 5, 90, 0, 90);
+            InvalidateVisual();
+            e.Handled = true;
+        }
+
+        protected override void OnMouseRightButtonDown(MouseButtonEventArgs e) {
+            base.OnMouseRightButtonDown(e);
+            viewAzLo = 0; viewAzHi = 360; viewAltLo = 0; viewAltHi = 90;
+            InvalidateVisual();
+            e.Handled = true;
+        }
+
+        private static void ZoomAxis(ref double lo, ref double hi, double center, double f,
+                                     double minSpan, double maxSpan, double boundLo, double boundHi) {
+            double span = (hi - lo) * f;
+            span = Math.Max(minSpan, Math.Min(maxSpan, span));
+            double frac = (hi > lo) ? (center - lo) / (hi - lo) : 0.5;
+            lo = center - frac * span;
+            hi = lo + span;
+            if (lo < boundLo) { lo = boundLo; hi = lo + span; }
+            if (hi > boundHi) { hi = boundHi; lo = hi - span; }
+            if (lo < boundLo) lo = boundLo;
+        }
+
         protected override void OnRender(DrawingContext dc) {
             double w = ActualWidth, h = ActualHeight;
             if (w <= 0 || h <= 0 || PlotW <= 0 || PlotH <= 0) return;
 
             dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, w, h));
-            dc.DrawRectangle(SkyBrush, null, new Rect(left, top, PlotW, PlotH));
+            var plotRect = new Rect(left, top, PlotW, PlotH);
+            dc.DrawRectangle(SkyBrush, null, plotRect);
 
             for (int alt = 0; alt <= 90; alt += 15) {
+                if (alt < viewAltLo - 0.001 || alt > viewAltHi + 0.001) continue;
                 double y = Y(alt);
                 dc.DrawLine(GridPen, new Point(left, y), new Point(left + PlotW, y));
                 DrawText(dc, alt.ToString(), new Point(2, y - 7), GridLabelBrush, 10);
             }
             for (int az = 0; az <= 360; az += 45) {
+                if (az < viewAzLo - 0.001 || az > viewAzHi + 0.001) continue;
                 double x = X(az);
                 dc.DrawLine(GridPen, new Point(x, top), new Point(x, top + PlotH));
             }
 
+            dc.PushClip(new RectangleGeometry(plotRect));
             var horizon = Horizon;
             if (horizon != null && horizon.Points.Count > 0) {
-                var fig = new PathFigure { IsClosed = true, StartPoint = new Point(X(0), Y(0)) };
-                for (int az = 0; az <= 360; az++)
-                    fig.Segments.Add(new LineSegment(new Point(X(az), Y(horizon.GetAltitude(az % 360))), true));
-                fig.Segments.Add(new LineSegment(new Point(X(360), Y(0)), true));
+                int samples = Math.Max(2, (int)PlotW);
+                var fig = new PathFigure { IsClosed = true, StartPoint = new Point(left, top + PlotH) };
+                for (int i = 0; i <= samples; i++) {
+                    double az = viewAzLo + (viewAzHi - viewAzLo) * i / samples;
+                    fig.Segments.Add(new LineSegment(new Point(X(az), Y(horizon.GetAltitude(((az % 360) + 360) % 360))), true));
+                }
+                fig.Segments.Add(new LineSegment(new Point(left + PlotW, top + PlotH), true));
                 var geo = new PathGeometry(); geo.Figures.Add(fig);
                 dc.DrawGeometry(TerrainBrush, null, geo);
 
-                var line = new PathFigure { StartPoint = new Point(X(0), Y(horizon.GetAltitude(0))) };
-                for (int az = 1; az <= 360; az++)
-                    line.Segments.Add(new LineSegment(new Point(X(az), Y(horizon.GetAltitude(az % 360))), true));
+                var line = new PathFigure { StartPoint = new Point(left, Y(horizon.GetAltitude(((viewAzLo % 360) + 360) % 360))) };
+                for (int i = 1; i <= samples; i++) {
+                    double az = viewAzLo + (viewAzHi - viewAzLo) * i / samples;
+                    line.Segments.Add(new LineSegment(new Point(X(az), Y(horizon.GetAltitude(((az % 360) + 360) % 360))), true));
+                }
                 var lineGeo = new PathGeometry(); lineGeo.Figures.Add(line);
                 dc.DrawGeometry(null, HorizonPen, lineGeo);
 
                 for (int i = 0; i < horizon.Points.Count; i++) {
                     var pt = horizon.Points[i];
+                    if (pt.Azimuth < viewAzLo - 2 || pt.Azimuth > viewAzHi + 2) continue;
                     var c = new Point(X(pt.Azimuth), Y(pt.Altitude));
                     dc.DrawEllipse(pt.Unsaved ? UnsavedBrush : PointBrush, null, c, 3, 3);
                     if (i == SelectedIndex) dc.DrawEllipse(null, SelectedPen, c, 6, 6);
                 }
             }
 
-            dc.DrawRectangle(null, AxisPen, new Rect(left, top, PlotW, PlotH));
-
-            DrawText(dc, "N", new Point(X(0) - 4, top + PlotH + 4), CardinalBrush, 11, true);
-            DrawText(dc, "E", new Point(X(90) - 4, top + PlotH + 4), CardinalBrush, 11, true);
-            DrawText(dc, "S", new Point(X(180) - 4, top + PlotH + 4), CardinalBrush, 11, true);
-            DrawText(dc, "W", new Point(X(270) - 4, top + PlotH + 4), CardinalBrush, 11, true);
-            DrawText(dc, "N", new Point(X(360) - 4, top + PlotH + 4), CardinalBrush, 11, true);
-
             if (!double.IsNaN(MountAzimuth) && !double.IsNaN(MountAltitude)) {
-                double x = X(((MountAzimuth % 360) + 360) % 360);
-                dc.DrawLine(MountPen, new Point(x, top), new Point(x, top + PlotH));
-                dc.DrawEllipse(MountBrush, null, new Point(x, Y(MountAltitude)), 3.5, 3.5);
+                double maz = ((MountAzimuth % 360) + 360) % 360;
+                if (maz >= viewAzLo && maz <= viewAzHi) {
+                    double x = X(maz);
+                    dc.DrawLine(MountPen, new Point(x, top), new Point(x, top + PlotH));
+                    dc.DrawEllipse(MountBrush, null, new Point(x, Y(MountAltitude)), 3.5, 3.5);
+                }
             }
 
             if (!double.IsNaN(CrosshairAzimuth) && !double.IsNaN(CrosshairAltitude)) {
-                var c = new Point(X(((CrosshairAzimuth % 360) + 360) % 360), Y(CrosshairAltitude));
-                dc.DrawLine(CrosshairPen, new Point(c.X - 7, c.Y), new Point(c.X + 7, c.Y));
-                dc.DrawLine(CrosshairPen, new Point(c.X, c.Y - 7), new Point(c.X, c.Y + 7));
+                double caz = ((CrosshairAzimuth % 360) + 360) % 360;
+                if (caz >= viewAzLo && caz <= viewAzHi) {
+                    var c = new Point(X(caz), Y(CrosshairAltitude));
+                    dc.DrawLine(CrosshairPen, new Point(c.X - 7, c.Y), new Point(c.X + 7, c.Y));
+                    dc.DrawLine(CrosshairPen, new Point(c.X, c.Y - 7), new Point(c.X, c.Y + 7));
+                }
             }
+            dc.Pop();
+
+            dc.DrawRectangle(null, AxisPen, plotRect);
+
+            DrawCardinal(dc, "N", 0);
+            DrawCardinal(dc, "E", 90);
+            DrawCardinal(dc, "S", 180);
+            DrawCardinal(dc, "W", 270);
+            DrawCardinal(dc, "N", 360);
+        }
+
+        private void DrawCardinal(DrawingContext dc, string label, double az) {
+            if (az < viewAzLo - 0.001 || az > viewAzHi + 0.001) return;
+            DrawText(dc, label, new Point(X(az) - 4, top + PlotH + 4), CardinalBrush, 11, true);
         }
 
         private void DrawText(DrawingContext dc, string text, Point at, Brush brush, double size, bool bold = false) {
