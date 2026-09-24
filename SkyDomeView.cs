@@ -111,7 +111,21 @@ namespace InteractiveHorizonBuilder {
             double az = Math.Atan2(dx, -dy) * 180.0 / Math.PI;
             az = ((az % 360) + 360) % 360;
             alt = Math.Max(0, Math.Min(90, alt));
-            var arg = new Point(az, alt);
+
+            int hit = -1;
+            var horizon = Horizon;
+            if (horizon != null) {
+                double best = 8.0 * 8.0;
+                for (int i = 0; i < horizon.Points.Count; i++) {
+                    var pt = horizon.Points[i];
+                    var sp = Polar(center, radius, pt.Altitude, pt.Azimuth);
+                    double pdx = sp.X - p.X, pdy = sp.Y - p.Y;
+                    double d2 = pdx * pdx + pdy * pdy;
+                    if (d2 <= best) { best = d2; hit = i; }
+                }
+            }
+
+            var arg = new PickResult(az, alt, hit);
             if (PointPickedCommand != null && PointPickedCommand.CanExecute(arg)) {
                 PointPickedCommand.Execute(arg);
                 e.Handled = true;

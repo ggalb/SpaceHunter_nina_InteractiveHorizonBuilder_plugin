@@ -97,6 +97,8 @@ namespace InteractiveHorizonBuilder {
             Focusable = true;
         }
 
+        private const double PickPixelRadius = 8.0;
+
         protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e) {
             base.OnPreviewMouseLeftButtonDown(e);
             if (PlotW <= 0 || PlotH <= 0) return;
@@ -105,7 +107,21 @@ namespace InteractiveHorizonBuilder {
             double alt = viewAltHi - (p.Y - top) / PlotH * (viewAltHi - viewAltLo);
             az = ((az % 360) + 360) % 360;
             alt = Math.Max(0, Math.Min(90, alt));
-            var arg = new Point(az, alt);
+
+            int hit = -1;
+            var horizon = Horizon;
+            if (horizon != null) {
+                double best = PickPixelRadius * PickPixelRadius;
+                for (int i = 0; i < horizon.Points.Count; i++) {
+                    var pt = horizon.Points[i];
+                    if (pt.Azimuth < viewAzLo || pt.Azimuth > viewAzHi) continue;
+                    double dx = X(pt.Azimuth) - p.X, dy = Y(pt.Altitude) - p.Y;
+                    double d2 = dx * dx + dy * dy;
+                    if (d2 <= best) { best = d2; hit = i; }
+                }
+            }
+
+            var arg = new PickResult(az, alt, hit);
             if (PointPickedCommand != null && PointPickedCommand.CanExecute(arg)) {
                 PointPickedCommand.Execute(arg);
                 e.Handled = true;

@@ -6,6 +6,20 @@ using System.Linq;
 
 namespace InteractiveHorizonBuilder {
 
+    /// <summary>
+    /// Result of a click on a chart: the az/alt under the cursor, plus the index of an existing
+    /// point if the click landed within the pixel threshold of one (-1 = empty space -> place).
+    /// </summary>
+    public class PickResult {
+        public double Azimuth { get; set; }
+        public double Altitude { get; set; }
+        public int Index { get; set; } = -1;
+
+        public PickResult(double az, double alt, int index) {
+            Azimuth = az; Altitude = alt; Index = index;
+        }
+    }
+
     /// <summary>One editable horizon vertex. Unsaved = added/changed since the last file save.</summary>
     public class HorizonPoint {
         public double Azimuth { get; set; }

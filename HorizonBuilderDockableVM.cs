@@ -83,7 +83,7 @@ namespace InteractiveHorizonBuilder {
             TrackingOffCommand = new RelayCommand(() => SetTracking(false));
             TargetToMountCommand = new RelayCommand(() => { TargetAzimuth = MountAzimuth; TargetAltitude = MountAltitude; });
 
-            PointPickedCommand = new RelayCommand<Point>(OnPointPicked);
+            PointPickedCommand = new RelayCommand<PickResult>(OnPointPicked);
             PlaceConfirmCommand = new RelayCommand(PlaceOrConfirm);
             DeleteCommand = new RelayCommand(DeleteSelected);
             UndoCommand = new RelayCommand(Undo);
@@ -219,41 +219,23 @@ namespace InteractiveHorizonBuilder {
         public ICommand ConnectGuiderCommand { get; }
         public ICommand ConvertRaDecCommand { get; }
 
-        private const double SelectAzTolerance = 5.0;
-        private const double SelectAltTolerance = 8.0;
         private const double LowAltitudeWarningDeg = 20.0;
 
         // ---- Editing -----------------------------------------------------------
 
-        private void OnPointPicked(Point azAlt) {
-            double az = azAlt.X, alt = azAlt.Y;
-            int found = FindNearest(az, alt);
-            if (found >= 0) {
-                SelectedIndex = found;
-                TargetAzimuth = Model.Points[found].Azimuth;
-                TargetAltitude = Model.Points[found].Altitude;
-                EditStatus = $"Selected point {found + 1}/{Model.Points.Count}";
+        private void OnPointPicked(PickResult pick) {
+            if (pick == null) return;
+            if (pick.Index >= 0 && pick.Index < Model.Points.Count) {
+                SelectedIndex = pick.Index;
+                TargetAzimuth = Model.Points[pick.Index].Azimuth;
+                TargetAltitude = Model.Points[pick.Index].Altitude;
+                EditStatus = $"Selected point {pick.Index + 1}/{Model.Points.Count}";
             } else {
                 SelectedIndex = -1;
-                TargetAzimuth = az;
-                TargetAltitude = alt;
+                TargetAzimuth = pick.Azimuth;
+                TargetAltitude = pick.Altitude;
                 EditStatus = "Crosshair placed - Confirm to add a point here";
             }
-        }
-
-        private int FindNearest(double az, double alt) {
-            int best = -1;
-            double bestScore = double.MaxValue;
-            for (int i = 0; i < Model.Points.Count; i++) {
-                var p = Model.Points[i];
-                double dAz = Math.Abs(((p.Azimuth - az + 540) % 360) - 180);
-                double dAlt = Math.Abs(p.Altitude - alt);
-                if (dAz <= SelectAzTolerance && dAlt <= SelectAltTolerance) {
-                    double score = dAz + dAlt;
-                    if (score < bestScore) { bestScore = score; best = i; }
-                }
-            }
-            return best;
         }
 
         private void PlaceOrConfirm() {
