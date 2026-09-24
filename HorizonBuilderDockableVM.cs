@@ -12,10 +12,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace InteractiveHorizonBuilder {
 
@@ -39,6 +42,7 @@ namespace InteractiveHorizonBuilder {
         private CancellationTokenSource slewCts;
         private CancellationTokenSource captureCts;
         private readonly Stack<HorizonModel> undoStack = new Stack<HorizonModel>();
+        private readonly DispatcherTimer sunTimer;
         private static readonly IProgress<ApplicationStatus> NoProgress = new Progress<ApplicationStatus>();
 
         [ImportingConstructor]
@@ -95,6 +99,14 @@ namespace InteractiveHorizonBuilder {
             CaptureCommand = new AsyncRelayCommand(CaptureAsync);
             AbortCaptureCommand = new RelayCommand(() => captureCts?.Cancel());
             ConnectGuiderCommand = new AsyncRelayCommand(ConnectGuiderAsync);
+
+            ConvertRaDecCommand = new RelayCommand(ConvertRaDec);
+
+            BuildSunPath();
+            UpdateSun();
+            sunTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+            sunTimer.Tick += (s, e) => UpdateSun();
+            sunTimer.Start();
 
             telescopeMediator.RegisterConsumer(this);
         }
@@ -193,6 +205,7 @@ namespace InteractiveHorizonBuilder {
         public ICommand CaptureCommand { get; }
         public ICommand AbortCaptureCommand { get; }
         public ICommand ConnectGuiderCommand { get; }
+        public ICommand ConvertRaDecCommand { get; }
 
         private const double SelectAzTolerance = 5.0;
         private const double SelectAltTolerance = 8.0;
@@ -501,6 +514,141 @@ namespace InteractiveHorizonBuilder {
             }
         }
 
+        // ---- RA/Dec -> Alt/Az converter ----------------------------------------
+
+        private string raInput = "";
+        public string RaInput { get => raInput; set { raInput = value; RaisePropertyChanged(); } }
+
+        private string decInput = "";
+        public string DecInput { get => decInput; set { decInput = value; RaisePropertyChanged(); } }
+
+        private string timeInput = "";
+        public string TimeInput { get => timeInput; set { timeInput = value; RaisePropertyChanged(); } }
+
+        private bool raInHours = true;
+        public bool RaInHours { get => raInHours; set { raInHours = value; RaisePropertyChanged(); } }
+
+        private string converterStatus = "Paste RA/Dec + time from an imaging log";
+        public string ConverterStatus { get => converterStatus; set { converterStatus = value; RaisePropertyChanged(); } }
+
+        private void ConvertRaDec() {
+            if (!TryParseAngle(RaInput, RaInHours, out double raDeg)) { ConverterStatus = "Could not parse RA"; return; }
+            if (!TryParseAngle(DecInput, false, out double decDeg)) { ConverterStatus = "Could not parse Dec"; return; }
+            DateTime when;
+            if (string.IsNullOrWhiteSpace(TimeInput)) when = DateTime.Now;
+            else if (!DateTime.TryParse(TimeInput, CultureInfo.CurrentCulture, DateTimeStyles.None, out when)) {
+                ConverterStatus = "Could not parse date/time"; return;
+            }
+            var s = profileService.ActiveProfile.AstrometrySettings;
+            var (az, alt) = EqToHoriz(raDeg, decDeg, s.Latitude, s.Longitude, when.ToUniversalTime());
+            TargetAzimuth = az;
+            TargetAltitude = alt;
+            SelectedIndex = -1;
+            ConverterStatus = $"Crosshair -> Az {az:F1}° / Alt {alt:F1}°  (Time ± to trace the track)";
+        }
+
+        // ---- Sun position + safety rings ---------------------------------------
+
+        private double sunAzimuth = double.NaN;
+        public double SunAzimuth { get => sunAzimuth; set { sunAzimuth = value; RaisePropertyChanged(); } }
+
+        private double sunAltitude = double.NaN;
+        public double SunAltitude { get => sunAltitude; set { sunAltitude = value; RaisePropertyChanged(); } }
+
+        private PointCollection sunPath;
+        public PointCollection SunPath { get => sunPath; set { sunPath = value; RaisePropertyChanged(); } }
+
+        public bool SunUp => !double.IsNaN(SunAltitude) && SunAltitude >= 0;
+
+        private void UpdateSun() {
+            var s = profileService.ActiveProfile.AstrometrySettings;
+            var (az, alt) = SunAltAz(DateTime.UtcNow, s.Latitude, s.Longitude);
+            SunAzimuth = az;
+            SunAltitude = alt;
+            RaisePropertyChanged(nameof(SunUp));
+        }
+
+        private void BuildSunPath() {
+            var s = profileService.ActiveProfile.AstrometrySettings;
+            var pts = new PointCollection();
+            var midnight = DateTime.Now.Date;
+            for (int m = 0; m <= 1440; m += 10) {
+                var (az, alt) = SunAltAz(midnight.AddMinutes(m).ToUniversalTime(), s.Latitude, s.Longitude);
+                if (alt >= 0) pts.Add(new Point(az, alt));
+            }
+            pts.Freeze();
+            SunPath = pts;
+        }
+
+        // ---- Astronomy helpers (self-contained, LST-based) ---------------------
+
+        private const double D2R = Math.PI / 180.0, R2D = 180.0 / Math.PI;
+
+        private static double Norm360(double d) => ((d % 360) + 360) % 360;
+
+        private static double ToJulianUtc(DateTime utc) {
+            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return 2440587.5 + (utc - epoch).TotalDays;
+        }
+
+        /// <summary>Equatorial (RA/Dec, degrees) to horizontal (az from N, alt) at a site and UTC.</summary>
+        private static (double az, double alt) EqToHoriz(double raDeg, double decDeg, double latDeg, double lonEastDeg, DateTime utc) {
+            double jd = ToJulianUtc(utc);
+            double gmst = Norm360(280.46061837 + 360.98564736629 * (jd - 2451545.0));
+            double lst = Norm360(gmst + lonEastDeg);
+            double ha = (lst - raDeg) * D2R;
+            double lat = latDeg * D2R, dec = decDeg * D2R;
+            double sinAlt = Math.Sin(lat) * Math.Sin(dec) + Math.Cos(lat) * Math.Cos(dec) * Math.Cos(ha);
+            sinAlt = Math.Max(-1, Math.Min(1, sinAlt));
+            double alt = Math.Asin(sinAlt);
+            double cosAlt = Math.Cos(alt);
+            double az = 0;
+            if (Math.Abs(cosAlt) > 1e-9) {
+                double sinAz = -Math.Cos(dec) * Math.Sin(ha) / cosAlt;
+                double cosAz = (Math.Sin(dec) - Math.Sin(lat) * sinAlt) / (Math.Cos(lat) * cosAlt);
+                az = Math.Atan2(sinAz, cosAz) * R2D;
+            }
+            return (Norm360(az), alt * R2D);
+        }
+
+        /// <summary>Low-precision Sun position (Meeus) -> horizontal az/alt.</summary>
+        private static (double az, double alt) SunAltAz(DateTime utc, double latDeg, double lonEastDeg) {
+            double n = ToJulianUtc(utc) - 2451545.0;
+            double L = Norm360(280.460 + 0.9856474 * n);
+            double g = Norm360(357.528 + 0.9856003 * n) * D2R;
+            double lambda = (L + 1.915 * Math.Sin(g) + 0.020 * Math.Sin(2 * g)) * D2R;
+            double eps = (23.439 - 0.0000004 * n) * D2R;
+            double raDeg = Norm360(Math.Atan2(Math.Cos(eps) * Math.Sin(lambda), Math.Cos(lambda)) * R2D);
+            double decDeg = Math.Asin(Math.Sin(eps) * Math.Sin(lambda)) * R2D;
+            return EqToHoriz(raDeg, decDeg, latDeg, lonEastDeg, utc);
+        }
+
+        private static double AngularDistanceDeg(double alt1, double az1, double alt2, double az2) {
+            double a1 = alt1 * D2R, a2 = alt2 * D2R, dAz = (az1 - az2) * D2R;
+            double cosd = Math.Sin(a1) * Math.Sin(a2) + Math.Cos(a1) * Math.Cos(a2) * Math.Cos(dAz);
+            cosd = Math.Max(-1, Math.Min(1, cosd));
+            return Math.Acos(cosd) * R2D;
+        }
+
+        private static bool TryParseAngle(string text, bool hours, out double degrees) {
+            degrees = 0;
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            var t = text.Trim().Replace(":", " ");
+            var parts = t.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            double sign = t.StartsWith("-") ? -1 : 1;
+            if (parts.Length == 1) {
+                if (!double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out degrees)) return false;
+            } else {
+                if (!double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var a)) return false;
+                double b = 0, c = 0;
+                if (parts.Length > 1) double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out b);
+                if (parts.Length > 2) double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out c);
+                degrees = sign * (Math.Abs(a) + b / 60.0 + c / 3600.0);
+            }
+            if (hours) degrees *= 15.0;
+            return true;
+        }
+
         // ---- Mount control (Phase 3) -------------------------------------------
 
         private async Task SlewToTargetAsync() {
@@ -511,6 +659,16 @@ namespace InteractiveHorizonBuilder {
                     $"Target altitude is {TargetAltitude:F1}° - below {LowAltitudeWarningDeg:F0}°. Slew anyway?",
                     "Low-altitude slew", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (answer != MessageBoxResult.Yes) { MountStatus = "Slew cancelled"; return; }
+            }
+
+            if (SunUp) {
+                double sunDist = AngularDistanceDeg(TargetAltitude, TargetAzimuth, SunAltitude, SunAzimuth);
+                if (sunDist < 30.0) {
+                    var answer = MessageBox.Show(
+                        $"Target is {sunDist:F0}° from the Sun (below 30°). The scope's path may cross the Sun - protect the optics. Slew anyway?",
+                        "Near-Sun slew", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (answer != MessageBoxResult.Yes) { MountStatus = "Slew cancelled (near Sun)"; return; }
+                }
             }
 
             try {
@@ -565,6 +723,7 @@ namespace InteractiveHorizonBuilder {
         }
 
         public void Dispose() {
+            sunTimer?.Stop();
             telescopeMediator.RemoveConsumer(this);
         }
     }

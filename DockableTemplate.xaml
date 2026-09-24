@@ -58,7 +58,10 @@
                         MountAzimuth="{Binding MountAzimuth}"
                         PointPickedCommand="{Binding PointPickedCommand}"
                         RedrawTrigger="{Binding EditVersion}"
-                        SelectedIndex="{Binding SelectedIndex}" />
+                        SelectedIndex="{Binding SelectedIndex}"
+                        SunAltitude="{Binding SunAltitude}"
+                        SunAzimuth="{Binding SunAzimuth}"
+                        SunPath="{Binding SunPath}" />
                 </Viewbox>
 
                 <local:StripView
@@ -71,7 +74,9 @@
                     MountAzimuth="{Binding MountAzimuth}"
                     PointPickedCommand="{Binding PointPickedCommand}"
                     RedrawTrigger="{Binding EditVersion}"
-                    SelectedIndex="{Binding SelectedIndex}" />
+                    SelectedIndex="{Binding SelectedIndex}"
+                    SunAltitude="{Binding SunAltitude}"
+                    SunAzimuth="{Binding SunAzimuth}" />
 
                 <StackPanel Grid.Row="4" Margin="0,10,0,0" Orientation="Vertical">
                     <WrapPanel Orientation="Horizontal">
@@ -163,6 +168,29 @@
                 <Border BorderBrush="#2A3646" BorderThickness="1">
                     <Image MaxHeight="380" Source="{Binding LastFrame}" Stretch="Uniform" />
                 </Border>
+
+                <TextBlock Margin="0,14,0,4" FontWeight="Bold" Text="RA/Dec → Alt/Az (from a log)" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,4" Text="RA" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,6,4" Text="{Binding RaInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Decimal or H M S" />
+                    <CheckBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,0,4" Content="hours" IsChecked="{Binding RaInHours}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,4" Text="Dec" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,4" Text="{Binding DecInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Decimal or D M S" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,0" Text="Time" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding TimeInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Local date/time; blank = now" />
+                </Grid>
+                <Button Margin="0,6,0,0" HorizontalAlignment="Left" Padding="12,2" Command="{Binding ConvertRaDecCommand}" Content="Convert → crosshair" />
+                <TextBlock Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap" Text="{Binding ConverterStatus}" />
             </StackPanel>
         </Grid>
     </DataTemplate>

@@ -38,6 +38,15 @@ namespace InteractiveHorizonBuilder {
         public static readonly DependencyProperty PointPickedCommandProperty =
             DependencyProperty.Register(nameof(PointPickedCommand), typeof(ICommand), typeof(StripView),
                 new PropertyMetadata(null));
+        public static readonly DependencyProperty SunAzimuthProperty =
+            DependencyProperty.Register(nameof(SunAzimuth), typeof(double), typeof(StripView),
+                new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty SunAltitudeProperty =
+            DependencyProperty.Register(nameof(SunAltitude), typeof(double), typeof(StripView),
+                new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
+
+        public double SunAzimuth { get => (double)GetValue(SunAzimuthProperty); set => SetValue(SunAzimuthProperty, value); }
+        public double SunAltitude { get => (double)GetValue(SunAltitudeProperty); set => SetValue(SunAltitudeProperty, value); }
 
         public HorizonModel Horizon { get => (HorizonModel)GetValue(HorizonProperty); set => SetValue(HorizonProperty, value); }
         public double MountAzimuth { get => (double)GetValue(MountAzimuthProperty); set => SetValue(MountAzimuthProperty, value); }
@@ -61,9 +70,12 @@ namespace InteractiveHorizonBuilder {
         private static readonly Brush UnsavedBrush = Frozen(Color.FromRgb(0xE2, 0x4B, 0x4A));
         private static readonly Pen SelectedPen = FrozenPen(Color.FromRgb(0xED, 0xA1, 0x00), 2.0);
         private static readonly Pen CrosshairPen = FrozenPen(Color.FromRgb(0xFF, 0xFF, 0xFF), 1.0);
+        private static readonly Brush SunBrush = Frozen(Color.FromRgb(0xFF, 0xD1, 0x00));
+        private static readonly Pen SunPen = FrozenDashPen(Color.FromRgb(0xE0, 0xA4, 0x00), 1.0);
 
         private static Brush Frozen(Color c) { var b = new SolidColorBrush(c); b.Freeze(); return b; }
         private static Pen FrozenPen(Color c, double w) { var p = new Pen(Frozen(c), w); p.Freeze(); return p; }
+        private static Pen FrozenDashPen(Color c, double w) { var p = new Pen(Frozen(c), w) { DashStyle = new DashStyle(new double[] { 4, 3 }, 0) }; p.Freeze(); return p; }
 
         private double left = 28, right = 8, top = 6, bottom = 20;
         private double viewAzLo = 0, viewAzHi = 360, viewAltLo = 0, viewAltHi = 90;
@@ -181,6 +193,15 @@ namespace InteractiveHorizonBuilder {
                     double x = X(maz);
                     dc.DrawLine(MountPen, new Point(x, top), new Point(x, top + PlotH));
                     dc.DrawEllipse(MountBrush, null, new Point(x, Y(MountAltitude)), 3.5, 3.5);
+                }
+            }
+
+            if (!double.IsNaN(SunAzimuth) && !double.IsNaN(SunAltitude) && SunAltitude >= 0) {
+                double saz = ((SunAzimuth % 360) + 360) % 360;
+                if (saz >= viewAzLo && saz <= viewAzHi) {
+                    double x = X(saz);
+                    dc.DrawLine(SunPen, new Point(x, top), new Point(x, top + PlotH));
+                    dc.DrawEllipse(SunBrush, null, new Point(x, Y(SunAltitude)), 4, 4);
                 }
             }
 

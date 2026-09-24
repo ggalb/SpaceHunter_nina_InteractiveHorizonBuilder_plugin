@@ -38,6 +38,19 @@ namespace InteractiveHorizonBuilder {
         public static readonly DependencyProperty PointPickedCommandProperty =
             DependencyProperty.Register(nameof(PointPickedCommand), typeof(ICommand), typeof(SkyDomeView),
                 new PropertyMetadata(null));
+        public static readonly DependencyProperty SunAzimuthProperty =
+            DependencyProperty.Register(nameof(SunAzimuth), typeof(double), typeof(SkyDomeView),
+                new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty SunAltitudeProperty =
+            DependencyProperty.Register(nameof(SunAltitude), typeof(double), typeof(SkyDomeView),
+                new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty SunPathProperty =
+            DependencyProperty.Register(nameof(SunPath), typeof(PointCollection), typeof(SkyDomeView),
+                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+        public double SunAzimuth { get => (double)GetValue(SunAzimuthProperty); set => SetValue(SunAzimuthProperty, value); }
+        public double SunAltitude { get => (double)GetValue(SunAltitudeProperty); set => SetValue(SunAltitudeProperty, value); }
+        public PointCollection SunPath { get => (PointCollection)GetValue(SunPathProperty); set => SetValue(SunPathProperty, value); }
 
         public HorizonModel Horizon { get => (HorizonModel)GetValue(HorizonProperty); set => SetValue(HorizonProperty, value); }
         public double MountAzimuth { get => (double)GetValue(MountAzimuthProperty); set => SetValue(MountAzimuthProperty, value); }
@@ -61,8 +74,13 @@ namespace InteractiveHorizonBuilder {
         private static readonly Brush UnsavedBrush = Frozen(Color.FromRgb(0xE2, 0x4B, 0x4A));
         private static readonly Pen SelectedPen = FrozenPen(Color.FromRgb(0xED, 0xA1, 0x00), 2.0);
         private static readonly Pen CrosshairPen = FrozenPen(Color.FromRgb(0xFF, 0xFF, 0xFF), 1.0);
+        private static readonly Brush SunBrush = Frozen(Color.FromRgb(0xFF, 0xD1, 0x00));
+        private static readonly Pen SunPathPen = FrozenDashPen(Color.FromRgb(0xE0, 0xA4, 0x00), 1.0);
+        private static readonly Pen Ring15Pen = FrozenDashPen(Color.FromRgb(0xE2, 0x4B, 0x4A), 1.5);
+        private static readonly Pen Ring30Pen = FrozenDashPen(Color.FromRgb(0xED, 0xA1, 0x00), 1.5);
 
         private static Brush Frozen(Color c) { var b = new SolidColorBrush(c); b.Freeze(); return b; }
+        private static Pen FrozenDashPen(Color c, double w) { var p = new Pen(Frozen(c), w) { DashStyle = new DashStyle(new double[] { 4, 3 }, 0) }; p.Freeze(); return p; }
         private static Pen FrozenPen(Color c, double w) { var p = new Pen(Frozen(c), w); p.Freeze(); return p; }
 
         public SkyDomeView() {
@@ -147,6 +165,20 @@ namespace InteractiveHorizonBuilder {
                 }
             }
 
+            if (SunPath != null && SunPath.Count > 1) {
+                var fig = new PathFigure { StartPoint = Polar(center, radius, SunPath[0].Y, SunPath[0].X) };
+                for (int i = 1; i < SunPath.Count; i++)
+                    fig.Segments.Add(new LineSegment(Polar(center, radius, SunPath[i].Y, SunPath[i].X), true));
+                var g = new PathGeometry(); g.Figures.Add(fig);
+                dc.DrawGeometry(null, SunPathPen, g);
+            }
+
+            if (!double.IsNaN(SunAzimuth) && !double.IsNaN(SunAltitude) && SunAltitude >= 0) {
+                DrawSphericalRing(dc, center, radius, SunAltitude, SunAzimuth, 30, Ring30Pen);
+                DrawSphericalRing(dc, center, radius, SunAltitude, SunAzimuth, 15, Ring15Pen);
+                dc.DrawEllipse(SunBrush, null, Polar(center, radius, SunAltitude, SunAzimuth), 6, 6);
+            }
+
             if (!double.IsNaN(MountAzimuth) && !double.IsNaN(MountAltitude)) {
                 var p = Polar(center, radius, MountAltitude, MountAzimuth);
                 double s = 6;
@@ -165,6 +197,28 @@ namespace InteractiveHorizonBuilder {
                 var c = Polar(center, radius, CrosshairAltitude, CrosshairAzimuth);
                 dc.DrawLine(CrosshairPen, new Point(c.X - 7, c.Y), new Point(c.X + 7, c.Y));
                 dc.DrawLine(CrosshairPen, new Point(c.X, c.Y - 7), new Point(c.X, c.Y + 7));
+            }
+        }
+
+        private void DrawSphericalRing(DrawingContext dc, Point center, double radius, double altC, double azC, double theta, Pen pen) {
+            double d2r = Math.PI / 180.0;
+            double aC = altC * d2r, thr = theta * d2r;
+            PathFigure fig = null;
+            for (int b = 0; b <= 360; b += 10) {
+                double br = b * d2r;
+                double sinAlt = Math.Sin(aC) * Math.Cos(thr) + Math.Cos(aC) * Math.Sin(thr) * Math.Cos(br);
+                sinAlt = Math.Max(-1, Math.Min(1, sinAlt));
+                double alt = Math.Asin(sinAlt);
+                double az = azC + Math.Atan2(Math.Sin(br) * Math.Sin(thr) * Math.Cos(aC),
+                                             Math.Cos(thr) - Math.Sin(aC) * sinAlt) / d2r;
+                var p = Polar(center, radius, Math.Max(0, alt / d2r), az);
+                if (fig == null) fig = new PathFigure { StartPoint = p };
+                else fig.Segments.Add(new LineSegment(p, true));
+            }
+            if (fig != null) {
+                fig.IsClosed = true;
+                var geo = new PathGeometry(); geo.Figures.Add(fig);
+                dc.DrawGeometry(null, pen, geo);
             }
         }
 
