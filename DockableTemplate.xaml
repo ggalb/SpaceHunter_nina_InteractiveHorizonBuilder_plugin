@@ -7,44 +7,63 @@
     <!--  Naming convention required by N.I.N.A.: "<Fully.Qualified.VMTypeName>_Dockable"  -->
     <DataTemplate x:Key="InteractiveHorizonBuilder.HorizonBuilderDockableVM_Dockable">
         <Grid Margin="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="200" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-            <TextBlock
-                Grid.Row="0"
-                Margin="0,0,0,4"
-                FontSize="16"
-                FontWeight="Bold"
-                Text="Interactive Horizon Builder" />
+            <!--  LEFT: graphs + horizon/mount/device controls  -->
+            <Grid Grid.Column="0" Margin="0,0,12,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="200" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal">
-                <TextBlock Foreground="Gray" Text="Mount " />
-                <TextBlock Foreground="Gray" Text="{Binding MountConnected}" />
-                <TextBlock Foreground="Gray" Text="  ·  Az " />
-                <TextBlock Foreground="Gray" Text="{Binding MountAzimuth, StringFormat=F1}" />
-                <TextBlock Foreground="Gray" Text="°  Alt " />
-                <TextBlock Foreground="Gray" Text="{Binding MountAltitude, StringFormat=F1}" />
-                <TextBlock Foreground="Gray" Text="°  ·  Horizon@Az " />
-                <TextBlock Foreground="Gray" Text="{Binding HorizonAltitudeAtMount, StringFormat=F1}" />
-                <TextBlock Foreground="Gray" Text="°" />
-            </StackPanel>
+                <TextBlock
+                    Grid.Row="0"
+                    Margin="0,0,0,4"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="Interactive Horizon Builder" />
 
-            <Viewbox
-                Grid.Row="2"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Stretch="Uniform">
-                <local:SkyDomeView
-                    Width="460"
-                    Height="460"
+                <StackPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal">
+                    <TextBlock Foreground="Gray" Text="Mount " />
+                    <TextBlock Foreground="Gray" Text="{Binding MountConnected}" />
+                    <TextBlock Foreground="Gray" Text="  ·  Az " />
+                    <TextBlock Foreground="Gray" Text="{Binding MountAzimuth, StringFormat=F1}" />
+                    <TextBlock Foreground="Gray" Text="°  Alt " />
+                    <TextBlock Foreground="Gray" Text="{Binding MountAltitude, StringFormat=F1}" />
+                    <TextBlock Foreground="Gray" Text="°  ·  Horizon@Az " />
+                    <TextBlock Foreground="Gray" Text="{Binding HorizonAltitudeAtMount, StringFormat=F1}" />
+                    <TextBlock Foreground="Gray" Text="°" />
+                </StackPanel>
+
+                <Viewbox
+                    Grid.Row="2"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Stretch="Uniform">
+                    <local:SkyDomeView
+                        Width="460"
+                        Height="460"
+                        CrosshairAltitude="{Binding TargetAltitude}"
+                        CrosshairAzimuth="{Binding TargetAzimuth}"
+                        Horizon="{Binding Model}"
+                        MountAltitude="{Binding MountAltitude}"
+                        MountAzimuth="{Binding MountAzimuth}"
+                        PointPickedCommand="{Binding PointPickedCommand}"
+                        RedrawTrigger="{Binding EditVersion}"
+                        SelectedIndex="{Binding SelectedIndex}" />
+                </Viewbox>
+
+                <local:StripView
+                    Grid.Row="3"
+                    Margin="0,8,0,0"
                     CrosshairAltitude="{Binding TargetAltitude}"
                     CrosshairAzimuth="{Binding TargetAzimuth}"
                     Horizon="{Binding Model}"
@@ -53,106 +72,96 @@
                     PointPickedCommand="{Binding PointPickedCommand}"
                     RedrawTrigger="{Binding EditVersion}"
                     SelectedIndex="{Binding SelectedIndex}" />
-            </Viewbox>
 
-            <local:StripView
-                Grid.Row="3"
-                Margin="0,8,0,0"
-                CrosshairAltitude="{Binding TargetAltitude}"
-                CrosshairAzimuth="{Binding TargetAzimuth}"
-                Horizon="{Binding Model}"
-                MountAltitude="{Binding MountAltitude}"
-                MountAzimuth="{Binding MountAzimuth}"
-                PointPickedCommand="{Binding PointPickedCommand}"
-                RedrawTrigger="{Binding EditVersion}"
-                SelectedIndex="{Binding SelectedIndex}" />
+                <StackPanel Grid.Row="4" Margin="0,10,0,0" Orientation="Vertical">
+                    <WrapPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="Target  Az" />
+                        <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAzimuth, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock VerticalAlignment="Center" Text="Alt" />
+                        <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAltitude, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock VerticalAlignment="Center" Text="Time" />
+                        <TextBox Width="40" Margin="4,0,2,0" Text="{Binding TimeStepMinutes, StringFormat=F0, UpdateSourceTrigger=PropertyChanged}" ToolTip="Time step in minutes (traces the sky/RA track)" />
+                        <TextBlock VerticalAlignment="Center" Text="m " />
+                        <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding TimeMinusCommand}" Content="Time −" />
+                        <Button Margin="0,0,12,0" Padding="6,2" Command="{Binding TimePlusCommand}" Content="Time +" />
+                        <TextBlock VerticalAlignment="Center" Text="Step" />
+                        <TextBox Width="40" Margin="4,0,2,0" Text="{Binding NudgeStep, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" ToolTip="Az/Alt step in degrees" />
+                        <TextBlock VerticalAlignment="Center" Text="° " />
+                        <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AzMinusCommand}" Content="Az −" />
+                        <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AzPlusCommand}" Content="Az +" />
+                        <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AltMinusCommand}" Content="Alt −" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
+                        <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AltPlusCommand}" Content="Alt +" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
+                        <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TargetToMountCommand}" Content="= mount" ToolTip="Copy the current mount Az/Alt into the target/crosshair" />
+                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding SlewCommand}" Content="Slew" />
+                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding StopCommand}" Content="STOP" />
+                        <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TrackingOnCommand}" Content="Track on" />
+                        <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TrackingOffCommand}" Content="Track off" />
+                    </WrapPanel>
+                    <TextBlock Margin="0,6,0,0" Foreground="Gray" Text="{Binding MountStatus, StringFormat='Mount: {0}'}" />
+                </StackPanel>
 
-            <StackPanel Grid.Row="4" Margin="0,10,0,0" Orientation="Vertical">
+                <StackPanel Grid.Row="5" Margin="0,8,0,0" Orientation="Vertical">
+                    <WrapPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="Edit horizon:  " />
+                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding PlaceConfirmCommand}" Content="Place / Confirm" ToolTip="Add a point at the crosshair, or update the selected point to the crosshair" />
+                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding DeleteCommand}" Content="Delete" IsEnabled="{Binding HasSelection}" />
+                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding UndoCommand}" Content="Undo" />
+                        <Button Margin="0,0,6,0" Padding="12,2" Command="{Binding SaveCommand}" Content="Save" ToolTip="Write the .hrz and reload it into N.I.N.A." />
+                    </WrapPanel>
+                    <TextBlock Margin="0,6,0,0" Foreground="#ED9F27" Text="{Binding EditStatus, StringFormat='Edit: {0}'}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="6" Margin="0,8,0,0" Orientation="Vertical">
+                    <WrapPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="Focuser " />
+                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FocuserState}" />
+                        <TextBlock VerticalAlignment="Center" Text="  →  " />
+                        <TextBox Width="70" Margin="0,0,4,0" Text="{Binding FocuserTargetPosition, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Margin="0,0,14,0" Padding="8,2" Command="{Binding MoveFocuserCommand}" Content="Move" />
+
+                        <TextBlock VerticalAlignment="Center" Text="Rotator " />
+                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding RotatorState}" />
+                        <TextBlock VerticalAlignment="Center" Text="  " />
+                        <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="0" Content="0°" ToolTip="Landscape" />
+                        <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="315" Content="315°" />
+                        <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="45" Content="45°" />
+                        <Button Margin="0,0,14,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="90" Content="90°" />
+
+                        <TextBlock VerticalAlignment="Center" Text="Flat " />
+                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FlatState}" />
+                        <TextBlock VerticalAlignment="Center" Text="  " />
+                        <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding FlatOpenCommand}" Content="Open" />
+                        <Button Margin="0,0,14,0" Padding="8,2" Command="{Binding FlatCloseCommand}" Content="Close" />
+
+                        <TextBlock VerticalAlignment="Center" Text="Dust cover " />
+                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding DustCoverState}" />
+                        <TextBlock VerticalAlignment="Center" Text="  " />
+                        <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOnCommand}" Content="On" />
+                        <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOffCommand}" Content="Off" />
+                    </WrapPanel>
+                    <TextBlock Margin="0,6,0,0" Foreground="Gray" Text="{Binding DeviceStatus, StringFormat='Devices: {0}'}" />
+                </StackPanel>
+            </Grid>
+
+            <!--  RIGHT: main-camera check frame (fixed column so the preview never shrinks the graphs)  -->
+            <StackPanel Grid.Column="1" Width="380" VerticalAlignment="Top" Orientation="Vertical">
+                <TextBlock Margin="0,0,0,6" FontWeight="Bold" Text="Check frame" />
                 <WrapPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="Target  Az" />
-                    <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAzimuth, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock VerticalAlignment="Center" Text="Alt" />
-                    <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAltitude, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock VerticalAlignment="Center" Text="Time" />
-                    <TextBox Width="40" Margin="4,0,2,0" Text="{Binding TimeStepMinutes, StringFormat=F0, UpdateSourceTrigger=PropertyChanged}" ToolTip="Time step in minutes (traces the sky/RA track)" />
-                    <TextBlock VerticalAlignment="Center" Text="m " />
-                    <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding TimeMinusCommand}" Content="Time −" />
-                    <Button Margin="0,0,12,0" Padding="6,2" Command="{Binding TimePlusCommand}" Content="Time +" />
-                    <TextBlock VerticalAlignment="Center" Text="Step" />
-                    <TextBox Width="40" Margin="4,0,2,0" Text="{Binding NudgeStep, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" ToolTip="Az/Alt step in degrees" />
-                    <TextBlock VerticalAlignment="Center" Text="° " />
-                    <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AzMinusCommand}" Content="Az −" />
-                    <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AzPlusCommand}" Content="Az +" />
-                    <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AltMinusCommand}" Content="Alt −" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
-                    <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AltPlusCommand}" Content="Alt +" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
-                    <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TargetToMountCommand}" Content="= mount" ToolTip="Copy the current mount Az/Alt into the target/crosshair" />
-                    <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding SlewCommand}" Content="Slew" />
-                    <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding StopCommand}" Content="STOP" />
-                    <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TrackingOnCommand}" Content="Track on" />
-                    <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TrackingOffCommand}" Content="Track off" />
-                </WrapPanel>
-                <TextBlock Margin="0,6,0,0" Foreground="Gray" Text="{Binding MountStatus, StringFormat='Mount: {0}'}" />
-            </StackPanel>
-
-            <StackPanel Grid.Row="5" Margin="0,8,0,0" Orientation="Vertical">
-                <WrapPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="Edit horizon:  " />
-                    <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding PlaceConfirmCommand}" Content="Place / Confirm" ToolTip="Add a point at the crosshair, or update the selected point to the crosshair" />
-                    <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding DeleteCommand}" Content="Delete" IsEnabled="{Binding HasSelection}" />
-                    <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding UndoCommand}" Content="Undo" />
-                    <Button Margin="0,0,6,0" Padding="12,2" Command="{Binding SaveCommand}" Content="Save" ToolTip="Write the .hrz and reload it into N.I.N.A." />
-                </WrapPanel>
-                <TextBlock Margin="0,6,0,0" Foreground="#ED9F27" Text="{Binding EditStatus, StringFormat='Edit: {0}'}" />
-            </StackPanel>
-
-            <StackPanel Grid.Row="6" Margin="0,8,0,0" Orientation="Vertical">
-                <WrapPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="Focuser " />
-                    <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FocuserState}" />
-                    <TextBlock VerticalAlignment="Center" Text="  →  " />
-                    <TextBox Width="70" Margin="0,0,4,0" Text="{Binding FocuserTargetPosition, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Margin="0,0,14,0" Padding="8,2" Command="{Binding MoveFocuserCommand}" Content="Move" />
-
-                    <TextBlock VerticalAlignment="Center" Text="Rotator " />
-                    <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding RotatorState}" />
-                    <TextBlock VerticalAlignment="Center" Text="  " />
-                    <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="0" Content="0°" ToolTip="Landscape" />
-                    <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="315" Content="315°" />
-                    <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="45" Content="45°" />
-                    <Button Margin="0,0,14,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="90" Content="90°" />
-                </WrapPanel>
-                <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="Main flat " />
-                    <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FlatState}" />
-                    <TextBlock VerticalAlignment="Center" Text="  " />
-                    <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding FlatOpenCommand}" Content="Open" />
-                    <Button Margin="0,0,14,0" Padding="8,2" Command="{Binding FlatCloseCommand}" Content="Close" />
-
-                    <TextBlock VerticalAlignment="Center" Text="Guide dust cover " />
-                    <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding DustCoverState}" />
-                    <TextBlock VerticalAlignment="Center" Text="  " />
-                    <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOnCommand}" Content="On" />
-                    <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOffCommand}" Content="Off" />
-                </WrapPanel>
-                <TextBlock Margin="0,6,0,0" Foreground="Gray" Text="{Binding DeviceStatus, StringFormat='Devices: {0}'}" />
-            </StackPanel>
-
-            <StackPanel Grid.Row="7" Margin="0,8,0,0" Orientation="Vertical">
-                <WrapPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="Check frame:  " />
                     <TextBlock VerticalAlignment="Center" Text="Exp" />
                     <TextBox Width="50" Margin="4,0,2,0" Text="{Binding CameraExposure, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock VerticalAlignment="Center" Text="s  Gain" />
                     <TextBox Width="50" Margin="4,0,10,0" Text="{Binding CameraGain, UpdateSourceTrigger=PropertyChanged}" />
                     <Button Margin="0,0,4,0" Padding="10,2" Command="{Binding CaptureCommand}" Content="Capture" />
-                    <Button Margin="0,0,14,0" Padding="8,2" Command="{Binding AbortCaptureCommand}" Content="Abort" />
+                    <Button Margin="0,0,0,0" Padding="8,2" Command="{Binding AbortCaptureCommand}" Content="Abort" />
+                </WrapPanel>
+                <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" Text="PHD2 " />
                     <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding GuiderState}" />
                     <Button Margin="8,0,0,0" Padding="8,2" Command="{Binding ConnectGuiderCommand}" Content="Connect PHD2" />
                 </WrapPanel>
-                <TextBlock Margin="0,6,0,2" Foreground="Gray" Text="{Binding CameraStatus, StringFormat='Camera: {0}'}" />
-                <Border Margin="0,2,0,0" HorizontalAlignment="Left" BorderBrush="#2A3646" BorderThickness="1">
-                    <Image MaxHeight="240" Source="{Binding LastFrame}" Stretch="Uniform" />
+                <TextBlock Margin="0,6,0,4" Foreground="Gray" TextWrapping="Wrap" Text="{Binding CameraStatus, StringFormat='Camera: {0}'}" />
+                <Border BorderBrush="#2A3646" BorderThickness="1">
+                    <Image MaxHeight="380" Source="{Binding LastFrame}" Stretch="Uniform" />
                 </Border>
             </StackPanel>
         </Grid>
