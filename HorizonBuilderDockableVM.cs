@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
 using NINA.Astrometry;
 using NINA.Core.Model;
+using NINA.Core.Model.Equipment;
 using NINA.Equipment.Equipment.MyTelescope;
 using NINA.Equipment.Interfaces;
 using NINA.Equipment.Interfaces.Mediator;
@@ -37,6 +38,7 @@ namespace InteractiveHorizonBuilder {
         private readonly IRotatorMediator rotatorMediator;
         private readonly IFlatDeviceMediator flatDeviceMediator;
         private readonly ISwitchMediator switchMediator;
+        private readonly IFilterWheelMediator filterWheelMediator;
         private readonly ICameraMediator cameraMediator;
         private readonly IImagingMediator imagingMediator;
         private readonly IGuiderMediator guiderMediator;
@@ -56,6 +58,7 @@ namespace InteractiveHorizonBuilder {
             IRotatorMediator rotatorMediator,
             IFlatDeviceMediator flatDeviceMediator,
             ISwitchMediator switchMediator,
+            IFilterWheelMediator filterWheelMediator,
             ICameraMediator cameraMediator,
             IImagingMediator imagingMediator,
             IGuiderMediator guiderMediator)
@@ -65,6 +68,7 @@ namespace InteractiveHorizonBuilder {
             this.rotatorMediator = rotatorMediator;
             this.flatDeviceMediator = flatDeviceMediator;
             this.switchMediator = switchMediator;
+            this.filterWheelMediator = filterWheelMediator;
             this.cameraMediator = cameraMediator;
             this.imagingMediator = imagingMediator;
             this.guiderMediator = guiderMediator;
@@ -375,6 +379,29 @@ namespace InteractiveHorizonBuilder {
 
         private string deviceStatus = "Idle";
         public string DeviceStatus { get => deviceStatus; set { deviceStatus = value; RaisePropertyChanged(); } }
+
+        public System.Collections.IEnumerable Filters =>
+            profileService.ActiveProfile.FilterWheelSettings.FilterWheelFilters;
+
+        private FilterInfo selectedFilter;
+        public FilterInfo SelectedFilter {
+            get => selectedFilter;
+            set {
+                selectedFilter = value;
+                RaisePropertyChanged();
+                if (value != null) ChangeFilterAsync(value);
+            }
+        }
+
+        private async void ChangeFilterAsync(FilterInfo filter) {
+            try {
+                var info = filterWheelMediator.GetInfo();
+                if (info == null || !info.Connected) { DeviceStatus = "Filter wheel not connected"; return; }
+                DeviceStatus = $"Filter -> {filter.Name}...";
+                await filterWheelMediator.ChangeFilter(filter, CancellationToken.None, NoProgress);
+                DeviceStatus = $"Filter: {filter.Name}";
+            } catch (Exception ex) { DeviceStatus = "Filter error: " + ex.Message; }
+        }
 
         private void RefreshDevices() {
             try {
