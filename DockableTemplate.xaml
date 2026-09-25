@@ -116,13 +116,23 @@
                         <TextBlock VerticalAlignment="Center" Text="  →  " />
                         <TextBox Width="66" Margin="0,0,4,0" Text="{Binding FocuserTargetPosition, UpdateSourceTrigger=PropertyChanged}" />
                         <Button Margin="0,0,16,0" Padding="8,2" Command="{Binding MoveFocuserCommand}" Content="Move" />
-                        <TextBlock VerticalAlignment="Center" Text="Rotator " />
+                    </WrapPanel>
+                    <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" FontWeight="Bold" Foreground="#ED9F27" Text="⚠" Cursor="Help">
+                            <TextBlock.ToolTip>
+                                <ToolTip MaxWidth="320">
+                                    <TextBlock TextWrapping="Wrap" Text="The rotator buttons command MECHANICAL angles. Before using them, sync your rotator so mechanical home (0°) = sky angle 0°, so these numbers also read as sky angles. If your rotator cannot rotate a full 360°, some angles may be unreachable and a move can drive into a hard stop — know your reachable range and use STOP to abort. See the plugin's Description page for details." />
+                                </ToolTip>
+                            </TextBlock.ToolTip>
+                        </TextBlock>
+                        <TextBlock VerticalAlignment="Center" Text=" Rotator " />
                         <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding RotatorState}" />
                         <TextBlock VerticalAlignment="Center" Text="  " />
                         <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="0" Content="0°" ToolTip="Landscape" />
                         <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="315" Content="315°" />
                         <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="45" Content="45°" />
                         <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="90" Content="90°" />
+                        <Button Margin="6,0,0,0" Padding="8,2" Command="{Binding StopRotatorCommand}" Content="STOP" ToolTip="Halt the rotator immediately" />
                     </WrapPanel>
                     <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="Flat " />
@@ -138,7 +148,13 @@
                     </WrapPanel>
                     <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="Filter " />
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Foreground="Gray" Text="{Binding FilterState}" />
                         <ComboBox Width="150" DisplayMemberPath="Name" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}" ToolTip="Select a filter to move the filter wheel to" />
+                    </WrapPanel>
+                    <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="PHD2 " />
+                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding GuiderState}" />
+                        <Button Margin="8,0,0,0" Padding="8,2" Command="{Binding ConnectGuiderCommand}" Content="Connect PHD2" />
                     </WrapPanel>
                     <TextBlock Margin="0,4,0,0" Foreground="Gray" Text="{Binding DeviceStatus, StringFormat='Devices: {0}'}" />
 
@@ -156,7 +172,16 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,4" Text="RA" />
                         <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,6,4" Text="{Binding RaInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Decimal or H M S" />
-                        <CheckBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,0,4" Content="hours" IsChecked="{Binding RaInHours}" />
+                        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
+                            <TextBlock VerticalAlignment="Center" Margin="0,0,4,0" FontWeight="Bold" Foreground="#ED9F27" Text="⚠" Cursor="Help">
+                                <TextBlock.ToolTip>
+                                    <ToolTip MaxWidth="300">
+                                        <TextBlock TextWrapping="Wrap" Text="RA units for the box on the left. ON = RA in hours (decimal or H M S). OFF = RA in degrees (decimal or D M S). N.I.N.A. session logs give RA in degrees, so leave this OFF when pasting from a log." />
+                                    </ToolTip>
+                                </TextBlock.ToolTip>
+                            </TextBlock>
+                            <CheckBox VerticalAlignment="Center" Content="hours" IsChecked="{Binding RaInHours}" />
+                        </StackPanel>
                         <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,4" Text="Dec" />
                         <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,4" Text="{Binding DecInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Decimal or D M S" />
                         <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,0" Text="Time" />
@@ -196,11 +221,6 @@
                         <TextBox Width="50" Margin="4,0,10,0" Text="{Binding CameraGain, UpdateSourceTrigger=PropertyChanged}" />
                         <Button Margin="0,0,4,0" Padding="10,2" Command="{Binding CaptureCommand}" Content="Capture" />
                         <Button Padding="8,2" Command="{Binding AbortCaptureCommand}" Content="Abort" />
-                    </WrapPanel>
-                    <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="PHD2 " />
-                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding GuiderState}" />
-                        <Button Margin="8,0,0,0" Padding="8,2" Command="{Binding ConnectGuiderCommand}" Content="Connect PHD2" />
                     </WrapPanel>
                     <TextBlock Margin="0,6,0,4" Foreground="Gray" TextWrapping="Wrap" Text="{Binding CameraStatus, StringFormat='Camera: {0}'}" />
                     <Border BorderBrush="#2A3646" BorderThickness="1">

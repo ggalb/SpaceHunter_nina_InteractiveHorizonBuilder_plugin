@@ -44,8 +44,10 @@ namespace InteractiveHorizonBuilder {
         private readonly IGuiderMediator guiderMediator;
         private CancellationTokenSource slewCts;
         private CancellationTokenSource captureCts;
+        private CancellationTokenSource rotatorCts;
         private readonly Stack<HorizonModel> undoStack = new Stack<HorizonModel>();
         private readonly DispatcherTimer sunTimer;
+        private DispatcherTimer deviceTimer;
         private readonly IPluginOptionsAccessor pluginSettings;
         private static readonly Guid PluginGuid = Guid.Parse("b3d4e2a1-7c6f-4a2b-9e10-2f8c5a1d3b44");
         private static readonly IProgress<ApplicationStatus> NoProgress = new Progress<ApplicationStatus>();
@@ -101,6 +103,7 @@ namespace InteractiveHorizonBuilder {
 
             MoveFocuserCommand = new AsyncRelayCommand(MoveFocuserAsync);
             RotateToCommand = new AsyncRelayCommand<string>(RotateToAsync);
+            StopRotatorCommand = new RelayCommand(StopRotator);
             FlatOpenCommand = new AsyncRelayCommand(() => FlatCoverAsync(true));
             FlatCloseCommand = new AsyncRelayCommand(() => FlatCoverAsync(false));
             DustCoverOnCommand = new AsyncRelayCommand(() => DustCoverAsync(true));
@@ -112,11 +115,24 @@ namespace InteractiveHorizonBuilder {
 
             ConvertRaDecCommand = new RelayCommand(ConvertRaDec);
 
+            // Both timers are bound to the UI dispatcher EXPLICITLY. N.I.N.A. may construct this
+            // VM on a background (MEF) thread; a DispatcherTimer created there binds to a thread
+            // with no running message pump and never ticks (that froze the Sun position). The
+            // 4-arg ctor also auto-starts the timer.
+            var uiDispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+
             BuildSunPath();
             UpdateSun();
-            sunTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
-            sunTimer.Tick += (s, e) => UpdateSun();
-            sunTimer.Start();
+            sunTimer = new DispatcherTimer(TimeSpan.FromSeconds(20), DispatcherPriority.Background,
+                (s, e) => UpdateSun(), uiDispatcher);
+
+            // Passively detect equipment connection/state so the panel is correct on open
+            // and updates on its own - without the user having to click a device button
+            // (which would also fire that button's action). The mount consumer callback also
+            // refreshes devices, but only while the mount is connected and broadcasting.
+            RefreshDevices();
+            deviceTimer = new DispatcherTimer(TimeSpan.FromSeconds(5), DispatcherPriority.Background,
+                (s, e) => RefreshDevices(), uiDispatcher);
 
             telescopeMediator.RegisterConsumer(this);
         }
@@ -214,6 +230,7 @@ namespace InteractiveHorizonBuilder {
 
         public ICommand MoveFocuserCommand { get; }
         public ICommand RotateToCommand { get; }
+        public ICommand StopRotatorCommand { get; }
         public ICommand FlatOpenCommand { get; }
         public ICommand FlatCloseCommand { get; }
         public ICommand DustCoverOnCommand { get; }
@@ -377,6 +394,9 @@ namespace InteractiveHorizonBuilder {
         private string dustCoverState = "-";
         public string DustCoverState { get => dustCoverState; set { dustCoverState = value; RaisePropertyChanged(); } }
 
+        private string filterState = "-";
+        public string FilterState { get => filterState; set { filterState = value; RaisePropertyChanged(); } }
+
         private string deviceStatus = "Idle";
         public string DeviceStatus { get => deviceStatus; set { deviceStatus = value; RaisePropertyChanged(); } }
 
@@ -421,6 +441,11 @@ namespace InteractiveHorizonBuilder {
                 DustCoverState = sw == null ? "not found"
                     : (Math.Abs(sw.Value - sw.Maximum) < Math.Abs(sw.Value - sw.Minimum) ? "On" : "Off");
             } catch { DustCoverState = "-"; }
+            try {
+                var fw = filterWheelMediator.GetInfo();
+                FilterState = fw == null || !fw.Connected ? "not connected"
+                    : (fw.IsMoving ? "moving..." : (fw.SelectedFilter?.Name ?? "-"));
+            } catch { FilterState = "-"; }
         }
 
         private IWritableSwitch FindDustCover() {
@@ -448,11 +473,30 @@ namespace InteractiveHorizonBuilder {
                         System.Globalization.CultureInfo.InvariantCulture, out var angle)) return;
                 var r = rotatorMediator.GetInfo();
                 if (r == null || !r.Connected) { DeviceStatus = "Rotator not connected"; return; }
+                rotatorCts?.Cancel();
+                rotatorCts = new CancellationTokenSource();
                 DeviceStatus = $"Rotator -> {angle:F0}°...";
-                await rotatorMediator.MoveMechanical(angle, CancellationToken.None);
+                await rotatorMediator.MoveMechanical(angle, rotatorCts.Token);
                 DeviceStatus = $"Rotator at {angle:F0}°";
                 RefreshDevices();
+            } catch (OperationCanceledException) {
+                DeviceStatus = "Rotator stopped";
+                RefreshDevices();
             } catch (Exception ex) { DeviceStatus = "Rotator error: " + ex.Message; }
+        }
+
+        // Stop an in-flight rotator move. There is no Halt on IRotatorMediator, so cancel the
+        // move's token AND call Halt() on the underlying device (ASCOM IRotator). Halt is optional
+        // at the driver level - if it is not implemented it throws, which we swallow.
+        private void StopRotator() {
+            rotatorCts?.Cancel();
+            try {
+                (rotatorMediator.GetDevice() as IRotator)?.Halt();
+                DeviceStatus = "Rotator stopped";
+            } catch (Exception ex) {
+                DeviceStatus = "Rotator stop (Halt not supported): " + ex.Message;
+            }
+            RefreshDevices();
         }
 
         private async Task FlatCoverAsync(bool open) {
@@ -745,6 +789,7 @@ namespace InteractiveHorizonBuilder {
 
         public void Dispose() {
             sunTimer?.Stop();
+            deviceTimer?.Stop();
             telescopeMediator.RemoveConsumer(this);
         }
     }

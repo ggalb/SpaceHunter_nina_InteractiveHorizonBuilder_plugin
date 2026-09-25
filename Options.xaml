@@ -5,16 +5,10 @@
 
     <!--  Naming convention required by N.I.N.A.: "<AssemblyTitle>_Options"  -->
     <DataTemplate x:Key="Interactive Horizon Builder_Options">
-        <StackPanel MaxWidth="640" Orientation="Vertical">
-            <TextBlock Margin="0,0,0,8" FontSize="14" FontWeight="Bold" Text="Quick start" />
+        <StackPanel MaxWidth="640" HorizontalAlignment="Left" Orientation="Vertical">
             <TextBlock Margin="0,0,0,8" TextWrapping="Wrap"
-                       Text="This plugin has no settings here - all controls live on its panel. Open it from the Imaging tab (the same place as the Azimuth Chart)." />
-            <TextBlock Margin="0,0,0,4" TextWrapping="Wrap" Text="1.  In Options &gt; General, set your Horizon file, then restart N.I.N.A. Back up the .hrz first - Save overwrites it." />
-            <TextBlock Margin="0,0,0,4" TextWrapping="Wrap" Text="2.  Connect the gear you want (mount, main camera, focuser, rotator, flat, switch, filter wheel, guider)." />
-            <TextBlock Margin="0,0,0,4" TextWrapping="Wrap" Text="3.  Click a dot to select it, or click empty sky to place the crosshair. Slew there, Capture a frame, and judge clear/obstructed by eye." />
-            <TextBlock Margin="0,0,0,4" TextWrapping="Wrap" Text="4.  Nudge with Time (traces the sky track) or Az, then Place / Confirm. Edited points show red until you Save." />
-            <TextBlock Margin="0,0,0,4" TextWrapping="Wrap" Text="5.  Save writes the .hrz and reloads it into N.I.N.A." />
-            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" FontStyle="Italic"
+                       Text="This plugin has no settings here - all controls live on its panel. Open it from the Imaging tab, the same way you call other plug-ins." />
+            <TextBlock Margin="0,0,0,0" TextWrapping="Wrap" FontStyle="Italic"
                        Text="Full instructions are in the Description below." />
         </StackPanel>
     </DataTemplate>

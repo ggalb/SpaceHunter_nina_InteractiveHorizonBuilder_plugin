@@ -2,3 +2,7 @@ bin/
 obj/
 .vs/
 *.user
+
+# review-loop scratch (drafts of the plugin-page text, not part of the plugin)
+*_DRAFT.md
+*_DRAFT.md.docx

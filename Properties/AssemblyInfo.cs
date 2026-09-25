@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("0.1.0.0")]
 
 [assembly: AssemblyTitle("Interactive Horizon Builder")]
-[assembly: AssemblyDescription("Interactive Sky Dome + Strip horizon editor as a N.I.N.A. dockable panel.")]
+[assembly: AssemblyDescription("Edits or creates a horizon within N.I.N.A. based on manual data entry or by using connected gear (mount, camera etc).")]
 [assembly: AssemblyCompany("Space Hunter - Georg G Albrecht")]
 [assembly: AssemblyProduct("Interactive Horizon Builder")]
 [assembly: AssemblyCopyright("Copyright © 2026 Space Hunter - Georg G Albrecht")]
@@ -19,60 +19,47 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyMetadata("License", "MPL-2.0")]
 [assembly: AssemblyMetadata("LicenseURL", "https://www.mozilla.org/en-US/MPL/2.0/")]
-[assembly: AssemblyMetadata("Repository", "")]
-[assembly: AssemblyMetadata("Homepage", "")]
+[assembly: AssemblyMetadata("Repository", "https://github.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin")]
+[assembly: AssemblyMetadata("Homepage", "https://github.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin")]
 [assembly: AssemblyMetadata("Tags", "Horizon,Custom Horizon,Sky Dome,Azimuth,Obstruction")]
 [assembly: AssemblyMetadata("ChangelogURL", "")]
 [assembly: AssemblyMetadata("FeaturedImageURL", "")]
 [assembly: AssemblyMetadata("ScreenshotURL", "")]
 [assembly: AssemblyMetadata("AltScreenshotURL", "")]
-[assembly: AssemblyMetadata("LongDescription", @"Interactive Horizon Builder builds and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. It shows your horizon in two views, lets you check the real sky by slewing the mount and taking a frame, and saves the edited horizon straight back into N.I.N.A. It uses N.I.N.A.'s already-connected equipment - there is no separate program or bridge to run.
+[assembly: AssemblyMetadata("LongDescription", @"Creates and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. - by manual entry or with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly as N.I.N.A. reads it; edit points and Save to write the .hrz and reload it. No .hrz yet? Download template.hrz from GitHub (a flat line at 15° Alt) and link it in Options > General > Astrometry.
 
 Before you start
-- In Options > General, set your Horizon file. The plugin loads that file when it starts, so if you change it, restart N.I.N.A.
-- Back up your .hrz first. Save overwrites the file in place.
-- Connect the gear you want to use (mount, main camera, focuser, rotator, flat, switch, filter wheel, guider) as usual.
-- Open the panel from the Imaging tab, the same place as the Azimuth Chart.
+- Rig polar aligned (a previous night's run or a permanent pier).
+- If using the rotator, know its sky position - ideally 0° = Landscape at start. The angle buttons move MECHANICAL degrees from 0°; watch for cables, the Losmandy plate and other obstacles while it turns.
+- Test on a COPY of your .hrz (Save overwrites in place). Link the copy in Options > General > Astrometry and restart N.I.N.A.
+- Connect your gear; open the panel from the Imaging tab, like any plug-in.
 
-The two views
-- Sky Dome (top left): a polar view. Zenith at the centre, the horizon at the rim, N up, E right, S down, W left. Altitude rings are 15/30/45/60/75 degrees. The brown area is blocked (below the horizon line); the dark area is open sky.
-- Strip (below): azimuth across (N-E-S-W-N), altitude up (0-90) - the single-valued horizon exactly as N.I.N.A. reads it. Mouse wheel zooms around the pointer; right-click resets the zoom.
-Both views show the same data. Gray dots are saved horizon points; red dots are unsaved edits. The cyan diamond/line is where the mount is pointing now. The white cross is the crosshair - your working point and slew target. The top line shows the mount connection, its Az/Alt, and the horizon altitude at the mount's azimuth.
+The views
+Sky Dome (polar: zenith centre, N up / E right / S down / W left, rings 15-75°) and Strip (azimuth N-E-S-W-N, altitude 0-90) show the same horizon: brown = blocked, dark = open sky. Gray dots = saved, red = unsaved. Cyan = mount, white cross = crosshair (your working point / slew target). On the Strip the wheel zooms and right-click resets.
+
+Editing
+- Select a dot (its Az/Alt load into Target), or click empty sky to move the crosshair.
+- Place / Confirm adds a point at the crosshair, or moves the selected one there. Delete / Undo as needed.
+- Save writes the .hrz and reloads it (red dots turn gray). Unsaved edits are lost until you Save.
 
 Two ways to work
-A. Offline, from an imaging log (no mount needed). Use this when a target recently clipped a new obstruction (a tree that grew, a new building). Take the last good frame's RA/Dec and date/time from N.I.N.A.'s session metadata, type them into RA/Dec -> Alt/Az, and click Convert -> crosshair. The crosshair jumps to where that frame was taken. Use Time - / Time + to step along that target's path across the sky, and add points where it clears the obstruction.
+A. Offline (no gear): paste a frame's RA/Dec + time from a log into RA/Dec -> Alt/Az and Convert -> crosshair. Time - increases and Time + decreases the clearance margin along the target's path; add points where it clears.
+B. Connected: at dawn, dusk or under cloud, adjust the camera for daylight and refocus. Slew to a point, Capture, and judge sky vs. obstruction; nudge with Alt or Time, re-slew, add the point when clear; move in Az and repeat to build the line.
 
-B. Connected, by slewing (dawn, dusk, or a cloudy day). Brighten the camera for daylight (raise gain, short exposure) and refocus for day use. Pick a point, Slew to it, press Capture, and look at the frame: if you see sky, the point is clear; if it is blocked, nudge with Az or Time, re-slew, and check again. Once clear, add the point.
+Crosshair nudges: Time - / + traces the sky track (declination fixed). Az - / + moves in azimuth. Alt - / + moves up/down (editing only).
 
-Editing the horizon
-- Select: click on a dot (within a few pixels); its Az/Alt load into the Target fields. Zoom in on the strip to pick between close dots.
-- Place: click empty sky - the white crosshair moves there; nothing is added yet.
-- Place / Confirm: adds a new point at the crosshair, or moves the selected point to the crosshair. New/edited points turn red (unsaved).
-- Delete: removes the selected point. Undo: reverses the last add/move/delete.
-- Save: writes the .hrz and reloads it into N.I.N.A. Red dots turn gray. Until you Save, edits are not on disk.
+Equipment
+- Focuser: shows position; enter a step and Move.
+- Rotator: mechanical presets 0 / 315 / 45 / 90 + STOP (see the warning under Before you start).
+- Flat panel: Open / Close.
+- Filter: pick one to move the wheel.
+- Guide-scope dust cover: On / Off (a Switch matched by name). A custom device of my own design - most users won't have one.
+- Check frame: set Exp / Gain, then Capture or Abort.
+- PHD2: Connect starts N.I.N.A.'s guider (exposure and gain are set in PHD2). With a separate guide scope, snap a PHD2 frame to confirm it is clear too.
+- Mount: Slew, STOP, Track on / off - keep tracking OFF for horizon checks (fixed bearing).
 
-Corrections: Time vs Az/Alt
-Time - / Time + moves the crosshair along the sky track a target at that spot would follow (declination held fixed, hour angle stepped) - use it to trace a target's path. Az - / Az + moves sideways in azimuth. Alt - / Alt + moves straight up/down (an editing convenience, not a sky track).
+The Sun: when up, it shows red 15° / yellow 30° rings and today's dashed path; a slew within 30° warns first. Consider closing the flat and dust cover before open-sky slews. N.I.N.A. checks the frame CENTRE against the horizon (it ignores sensor size and rotation).
 
-Equipment controls
-- Focuser: shows the current position; type a target step and Move (for your day-focus offset).
-- Rotator: preset mechanical angles 0 / 315 / 45 / 90 (0 is landscape).
-- Main flat panel: Open / Close the cover.
-- Guide-scope dust cover: On / Off (a switch, found by name on the connected Switch device).
-- Filter: pick a filter from the dropdown to move the wheel.
-- Check frame: set Exposure and Gain, Capture (shown in the preview), Abort to cancel.
-- PHD2: Connect starts N.I.N.A.'s guider; guide exposure and gain are set in PHD2 itself.
-- Mount: Slew (to the crosshair), STOP, Track on / Track off. For horizon checks you usually want tracking OFF so the view stays on a fixed bearing. Alt/Az mounts stop tracking on a slew by themselves; RA/Dec mounts keep tracking until you turn it off.
-
-Daytime and the Sun
-When the Sun is up it is drawn with a red 15-degree and yellow 30-degree safety ring, and today's Sun path is a dashed line. A Slew within 30 degrees of the Sun asks for confirmation first - it does not stop the slew. Before slewing under open sky, consider closing the flat panel and the dust cover to protect the optics. N.I.N.A. checks the frame centre against the horizon (it ignores sensor size and rotation), so pointing the scope at a horizon point shows exactly what N.I.N.A. will use.
-
-Notes
-The Notes box is a scratchpad saved with your profile - night focus position, day focus position, gain/offset, filter, rotation, or the target you are working on.
-
-Recommendations
-- Copy your .hrz before your first edits.
-- Write down your night focus before refocusing for daytime.
-- Save before you finish - unsaved (red) points are lost otherwise.")]
+Notes: a scratchpad saved with your profile.")]
 
 [assembly: ComVisible(false)]
