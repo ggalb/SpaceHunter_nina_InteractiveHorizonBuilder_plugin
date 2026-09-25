@@ -6,3 +6,7 @@ obj/
 # review-loop scratch (drafts of the plugin-page text, not part of the plugin)
 *_DRAFT.md
 *_DRAFT.md.docx
+
+# internal-only working notes - not for GitHub
+HANDOVER.md
+PLAN.md
