@@ -23,7 +23,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("Homepage", "https://github.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin")]
 [assembly: AssemblyMetadata("Tags", "Horizon,Custom Horizon,Sky Dome,Azimuth,Obstruction")]
 [assembly: AssemblyMetadata("ChangelogURL", "")]
-[assembly: AssemblyMetadata("FeaturedImageURL", "")]
+[assembly: AssemblyMetadata("FeaturedImageURL", "https://raw.githubusercontent.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin/master/assets/Logo.png")]
 [assembly: AssemblyMetadata("ScreenshotURL", "")]
 [assembly: AssemblyMetadata("AltScreenshotURL", "")]
 [assembly: AssemblyMetadata("LongDescription", @"Creates and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. - by manual entry or with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly as N.I.N.A. reads it; edit points and Save to write the .hrz and reload it. No .hrz yet? Download template.hrz from GitHub (a flat line at 15° Alt) and link it in Options > General > Astrometry.

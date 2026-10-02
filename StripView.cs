@@ -10,7 +10,7 @@ namespace InteractiveHorizonBuilder {
     /// Strip view: azimuth (x) by altitude (y) - the single-valued horizon as N.I.N.A. reads it.
     /// Draws the editable model (fill + line + point dots), the live mount, a crosshair, and the
     /// selected point; clicking reports an az/alt back via PointPickedCommand. Mouse wheel zooms
-    /// around the pointer; right-click resets to the full 0-360 / 0-90 view.
+    /// around the pointer; left-drag pans; right-click resets to the full 0-360 / 0-90 view.
     /// </summary>
     public class StripView : FrameworkElement {
 
@@ -98,11 +98,65 @@ namespace InteractiveHorizonBuilder {
         }
 
         private const double PickPixelRadius = 8.0;
+        private const double DragThresholdPixels = 4.0;
+
+        // Left-button press: a click (no real movement) picks/places on release; a drag pans the view.
+        private bool leftDown, panning;
+        private Point downPoint, lastPanPoint;
 
         protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e) {
             base.OnPreviewMouseLeftButtonDown(e);
             if (PlotW <= 0 || PlotH <= 0) return;
+            leftDown = true;
+            panning = false;
+            downPoint = lastPanPoint = e.GetPosition(this);
+            CaptureMouse();
+            e.Handled = true;
+        }
+
+        protected override void OnPreviewMouseMove(MouseEventArgs e) {
+            base.OnPreviewMouseMove(e);
+            if (!leftDown) return;
             var p = e.GetPosition(this);
+            if (!panning) {
+                if ((p - downPoint).Length < DragThresholdPixels) return;
+                panning = true;
+                Cursor = Cursors.SizeAll;
+            }
+            double dAz = -(p.X - lastPanPoint.X) / PlotW * (viewAzHi - viewAzLo);
+            double dAlt = (p.Y - lastPanPoint.Y) / PlotH * (viewAltHi - viewAltLo);
+            PanAxis(ref viewAzLo, ref viewAzHi, dAz, 0, 360);
+            PanAxis(ref viewAltLo, ref viewAltHi, dAlt, 0, 90);
+            lastPanPoint = p;
+            InvalidateVisual();
+            e.Handled = true;
+        }
+
+        protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e) {
+            base.OnPreviewMouseLeftButtonUp(e);
+            if (!leftDown) return;
+            bool wasPanning = panning;
+            leftDown = panning = false;
+            Cursor = Cursors.Cross;
+            ReleaseMouseCapture();
+            e.Handled = true;
+            if (!wasPanning) Pick(downPoint);
+        }
+
+        protected override void OnLostMouseCapture(MouseEventArgs e) {
+            base.OnLostMouseCapture(e);
+            leftDown = panning = false;
+            Cursor = Cursors.Cross;
+        }
+
+        private static void PanAxis(ref double lo, ref double hi, double delta, double boundLo, double boundHi) {
+            double span = hi - lo;
+            lo = Math.Max(boundLo, Math.Min(boundHi - span, lo + delta));
+            hi = lo + span;
+        }
+
+        private void Pick(Point p) {
+            if (PlotW <= 0 || PlotH <= 0) return;
             double az = viewAzLo + (p.X - left) / PlotW * (viewAzHi - viewAzLo);
             double alt = viewAltHi - (p.Y - top) / PlotH * (viewAltHi - viewAltLo);
             az = ((az % 360) + 360) % 360;
@@ -124,7 +178,6 @@ namespace InteractiveHorizonBuilder {
             var arg = new PickResult(az, alt, hit);
             if (PointPickedCommand != null && PointPickedCommand.CanExecute(arg)) {
                 PointPickedCommand.Execute(arg);
-                e.Handled = true;
             }
         }
 

@@ -185,19 +185,27 @@ namespace InteractiveHorizonBuilder {
         // ---- Live mount state --------------------------------------------------
 
         private bool mountConnected;
-        public bool MountConnected { get => mountConnected; set { mountConnected = value; RaisePropertyChanged(); } }
+        public bool MountConnected { get => mountConnected; set { mountConnected = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(MountHeader)); } }
 
         private double mountAltitude = double.NaN;
-        public double MountAltitude { get => mountAltitude; set { mountAltitude = value; RaisePropertyChanged(); } }
+        public double MountAltitude { get => mountAltitude; set { mountAltitude = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(MountHeader)); } }
 
         private double mountAzimuth = double.NaN;
-        public double MountAzimuth { get => mountAzimuth; set { mountAzimuth = value; RaisePropertyChanged(); } }
+        public double MountAzimuth { get => mountAzimuth; set { mountAzimuth = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(MountHeader)); } }
 
         private bool horizonLoaded;
         public bool HorizonLoaded { get => horizonLoaded; set { horizonLoaded = value; RaisePropertyChanged(); } }
 
         private double horizonAltitudeAtMount;
-        public double HorizonAltitudeAtMount { get => horizonAltitudeAtMount; set { horizonAltitudeAtMount = value; RaisePropertyChanged(); } }
+        public double HorizonAltitudeAtMount { get => horizonAltitudeAtMount; set { horizonAltitudeAtMount = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(MountHeader)); } }
+
+        /// <summary>Header line under the title; reads "Mount not connected" instead of "False / NaN".</summary>
+        public string MountHeader {
+            get {
+                if (!MountConnected || double.IsNaN(MountAzimuth) || double.IsNaN(MountAltitude)) return "Mount not connected";
+                return $"Mount  ·  Az {MountAzimuth:F1}°  Alt {MountAltitude:F1}°  ·  Horizon@Az {HorizonAltitudeAtMount:F1}°";
+            }
+        }
 
         // ---- Target / crosshair + mount control --------------------------------
 

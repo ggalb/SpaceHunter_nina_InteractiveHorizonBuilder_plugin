@@ -6,228 +6,247 @@
 
     <!--  Naming convention required by N.I.N.A.: "<Fully.Qualified.VMTypeName>_Dockable"  -->
     <DataTemplate x:Key="InteractiveHorizonBuilder.HorizonBuilderDockableVM_Dockable">
-        <Grid Margin="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <!--  Whole panel scrolls vertically when the window is shorter than MinHeight;
+              otherwise the content is sized to the viewport so the * rows still stretch.  -->
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <Border
+                MinHeight="880"
+                Height="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+                Padding="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-            <!--  LEFT: graphs + mount actions + edit + notes  -->
-            <Grid Grid.Column="0" Margin="0,0,12,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="200" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+                    <!--  LEFT: graphs + equipment  -->
+                    <Grid Grid.Column="0" Margin="0,0,12,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="200" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Margin="0,0,0,4" FontSize="16" FontWeight="Bold" Text="Interactive Horizon Builder" />
+                        <TextBlock Grid.Row="0" Margin="0,0,0,4" FontSize="16" FontWeight="Bold" Text="Interactive Horizon Builder" />
 
-                <StackPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal">
-                    <TextBlock Foreground="Gray" Text="Mount " />
-                    <TextBlock Foreground="Gray" Text="{Binding MountConnected}" />
-                    <TextBlock Foreground="Gray" Text="  ·  Az " />
-                    <TextBlock Foreground="Gray" Text="{Binding MountAzimuth, StringFormat=F1}" />
-                    <TextBlock Foreground="Gray" Text="°  Alt " />
-                    <TextBlock Foreground="Gray" Text="{Binding MountAltitude, StringFormat=F1}" />
-                    <TextBlock Foreground="Gray" Text="°  ·  Horizon@Az " />
-                    <TextBlock Foreground="Gray" Text="{Binding HorizonAltitudeAtMount, StringFormat=F1}" />
-                    <TextBlock Foreground="Gray" Text="°" />
-                </StackPanel>
+                        <TextBlock Grid.Row="1" Margin="0,0,0,8" Foreground="Gray" Text="{Binding MountHeader}" />
 
-                <Viewbox Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Uniform">
-                    <local:SkyDomeView
-                        Width="460"
-                        Height="460"
-                        CrosshairAltitude="{Binding TargetAltitude}"
-                        CrosshairAzimuth="{Binding TargetAzimuth}"
-                        Horizon="{Binding Model}"
-                        MountAltitude="{Binding MountAltitude}"
-                        MountAzimuth="{Binding MountAzimuth}"
-                        PointPickedCommand="{Binding PointPickedCommand}"
-                        RedrawTrigger="{Binding EditVersion}"
-                        SelectedIndex="{Binding SelectedIndex}"
-                        SunAltitude="{Binding SunAltitude}"
-                        SunAzimuth="{Binding SunAzimuth}"
-                        SunPath="{Binding SunPath}" />
-                </Viewbox>
+                        <Viewbox Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Uniform">
+                            <local:SkyDomeView
+                                Width="460"
+                                Height="460"
+                                CrosshairAltitude="{Binding TargetAltitude}"
+                                CrosshairAzimuth="{Binding TargetAzimuth}"
+                                Horizon="{Binding Model}"
+                                MountAltitude="{Binding MountAltitude}"
+                                MountAzimuth="{Binding MountAzimuth}"
+                                PointPickedCommand="{Binding PointPickedCommand}"
+                                RedrawTrigger="{Binding EditVersion}"
+                                SelectedIndex="{Binding SelectedIndex}"
+                                SunAltitude="{Binding SunAltitude}"
+                                SunAzimuth="{Binding SunAzimuth}"
+                                SunPath="{Binding SunPath}" />
+                        </Viewbox>
 
-                <local:StripView
-                    Grid.Row="3"
-                    Margin="0,8,0,0"
-                    CrosshairAltitude="{Binding TargetAltitude}"
-                    CrosshairAzimuth="{Binding TargetAzimuth}"
-                    Horizon="{Binding Model}"
-                    MountAltitude="{Binding MountAltitude}"
-                    MountAzimuth="{Binding MountAzimuth}"
-                    PointPickedCommand="{Binding PointPickedCommand}"
-                    RedrawTrigger="{Binding EditVersion}"
-                    SelectedIndex="{Binding SelectedIndex}"
-                    SunAltitude="{Binding SunAltitude}"
-                    SunAzimuth="{Binding SunAzimuth}"
-                    SunPath="{Binding SunPath}" />
+                        <local:StripView
+                            Grid.Row="3"
+                            Margin="0,8,0,0"
+                            CrosshairAltitude="{Binding TargetAltitude}"
+                            CrosshairAzimuth="{Binding TargetAzimuth}"
+                            Horizon="{Binding Model}"
+                            MountAltitude="{Binding MountAltitude}"
+                            MountAzimuth="{Binding MountAzimuth}"
+                            PointPickedCommand="{Binding PointPickedCommand}"
+                            RedrawTrigger="{Binding EditVersion}"
+                            SelectedIndex="{Binding SelectedIndex}"
+                            SunAltitude="{Binding SunAltitude}"
+                            SunAzimuth="{Binding SunAzimuth}"
+                            SunPath="{Binding SunPath}" />
 
-                <StackPanel Grid.Row="4" Margin="0,10,0,0" Orientation="Vertical">
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding SlewCommand}" Content="Slew" />
-                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding StopCommand}" Content="STOP" />
-                        <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TrackingOnCommand}" Content="Track on" />
-                        <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TrackingOffCommand}" Content="Track off" />
-                        <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="Gray" Text="{Binding MountStatus, StringFormat='Mount: {0}'}" />
-                    </WrapPanel>
-                </StackPanel>
+                        <StackPanel Grid.Row="4" Margin="0,12,0,0" Orientation="Vertical">
+                            <TextBlock Margin="0,0,0,4" FontWeight="Bold" Text="Equipment" />
+                            <WrapPanel Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="Focuser " />
+                                <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FocuserState}" />
+                                <TextBlock VerticalAlignment="Center" Text="  →  " />
+                                <TextBox Width="66" Margin="0,0,4,0" Text="{Binding FocuserTargetPosition, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Margin="0,0,16,0" Padding="8,2" Command="{Binding MoveFocuserCommand}" Content="Move" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" FontWeight="Bold" Foreground="#ED9F27" Text="⚠" Cursor="Help">
+                                    <TextBlock.ToolTip>
+                                        <ToolTip MaxWidth="320">
+                                            <TextBlock TextWrapping="Wrap" Text="The rotator buttons command MECHANICAL angles. Before using them, sync your rotator so mechanical home (0°) = sky angle 0°, so these numbers also read as sky angles. If your rotator cannot rotate a full 360°, some angles may be unreachable and a move can drive into a hard stop — know your reachable range and use STOP to abort. See the plugin's Description page for details." />
+                                        </ToolTip>
+                                    </TextBlock.ToolTip>
+                                </TextBlock>
+                                <TextBlock VerticalAlignment="Center" Text=" Rotator " />
+                                <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding RotatorState}" />
+                                <TextBlock VerticalAlignment="Center" Text="  " />
+                                <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="0" Content="0°" ToolTip="Landscape" />
+                                <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="315" Content="315°" />
+                                <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="45" Content="45°" />
+                                <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="90" Content="90°" />
+                                <Button Margin="6,0,0,0" Padding="8,2" Command="{Binding StopRotatorCommand}" Content="STOP" ToolTip="Halt the rotator immediately" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="Flat " />
+                                <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FlatState}" />
+                                <TextBlock VerticalAlignment="Center" Text="  " />
+                                <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding FlatOpenCommand}" Content="Open" />
+                                <Button Margin="0,0,16,0" Padding="8,2" Command="{Binding FlatCloseCommand}" Content="Close" />
+                                <TextBlock VerticalAlignment="Center" Text="Dust cover " />
+                                <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding DustCoverState}" />
+                                <TextBlock VerticalAlignment="Center" Text="  " />
+                                <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOnCommand}" Content="On" />
+                                <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOffCommand}" Content="Off" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="Filter " />
+                                <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Foreground="Gray" Text="{Binding FilterState}" />
+                                <ComboBox Width="150" DisplayMemberPath="Name" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}" ToolTip="Select a filter to move the filter wheel to" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="PHD2 " />
+                                <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding GuiderState}" />
+                                <Button Margin="8,0,0,0" Padding="8,2" Command="{Binding ConnectGuiderCommand}" Content="Connect PHD2" />
+                            </WrapPanel>
+                            <TextBlock Margin="0,4,0,0" Foreground="Gray" Text="{Binding DeviceStatus, StringFormat='Devices: {0}'}" />
+                        </StackPanel>
+                    </Grid>
 
-                <StackPanel Grid.Row="5" Margin="0,8,0,0" Orientation="Vertical">
-                    <WrapPanel Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="Edit horizon:  " />
-                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding PlaceConfirmCommand}" Content="Place / Confirm" ToolTip="Add a point at the crosshair, or update the selected point to the crosshair" />
-                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding DeleteCommand}" Content="Delete" IsEnabled="{Binding HasSelection}" />
-                        <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding UndoCommand}" Content="Undo" />
-                        <Button Margin="0,0,6,0" Padding="12,2" Command="{Binding SaveCommand}" Content="Save" ToolTip="Write the .hrz and reload it into N.I.N.A." />
-                        <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="#ED9F27" Text="{Binding EditStatus, StringFormat='{}{0}'}" />
-                    </WrapPanel>
-                </StackPanel>
-
-                <StackPanel Grid.Row="6" Margin="0,10,0,0" Orientation="Vertical">
-                    <TextBlock FontWeight="Bold" Text="Notes" />
-                    <TextBox
-                        MinHeight="70"
-                        MaxHeight="120"
-                        Margin="0,4,0,0"
-                        AcceptsReturn="True"
-                        Text="{Binding Notes, UpdateSourceTrigger=LostFocus}"
-                        TextWrapping="Wrap"
-                        VerticalScrollBarVisibility="Auto"
-                        ToolTip="Session scratchpad - day focus position, gain/offset, filter, rotation, target. Saved with the profile." />
-                </StackPanel>
-            </Grid>
-
-            <!--  RIGHT: devices, converter, target, check frame (scrolls if tall)  -->
-            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Width="430" Orientation="Vertical">
-
-                    <TextBlock Margin="0,0,0,4" FontWeight="Bold" Text="Equipment" />
-                    <WrapPanel Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="Focuser " />
-                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FocuserState}" />
-                        <TextBlock VerticalAlignment="Center" Text="  →  " />
-                        <TextBox Width="66" Margin="0,0,4,0" Text="{Binding FocuserTargetPosition, UpdateSourceTrigger=PropertyChanged}" />
-                        <Button Margin="0,0,16,0" Padding="8,2" Command="{Binding MoveFocuserCommand}" Content="Move" />
-                    </WrapPanel>
-                    <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" FontWeight="Bold" Foreground="#ED9F27" Text="⚠" Cursor="Help">
-                            <TextBlock.ToolTip>
-                                <ToolTip MaxWidth="320">
-                                    <TextBlock TextWrapping="Wrap" Text="The rotator buttons command MECHANICAL angles. Before using them, sync your rotator so mechanical home (0°) = sky angle 0°, so these numbers also read as sky angles. If your rotator cannot rotate a full 360°, some angles may be unreachable and a move can drive into a hard stop — know your reachable range and use STOP to abort. See the plugin's Description page for details." />
-                                </ToolTip>
-                            </TextBlock.ToolTip>
-                        </TextBlock>
-                        <TextBlock VerticalAlignment="Center" Text=" Rotator " />
-                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding RotatorState}" />
-                        <TextBlock VerticalAlignment="Center" Text="  " />
-                        <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="0" Content="0°" ToolTip="Landscape" />
-                        <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="315" Content="315°" />
-                        <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="45" Content="45°" />
-                        <Button Margin="0,0,3,0" Padding="6,2" Command="{Binding RotateToCommand}" CommandParameter="90" Content="90°" />
-                        <Button Margin="6,0,0,0" Padding="8,2" Command="{Binding StopRotatorCommand}" Content="STOP" ToolTip="Halt the rotator immediately" />
-                    </WrapPanel>
-                    <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="Flat " />
-                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding FlatState}" />
-                        <TextBlock VerticalAlignment="Center" Text="  " />
-                        <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding FlatOpenCommand}" Content="Open" />
-                        <Button Margin="0,0,16,0" Padding="8,2" Command="{Binding FlatCloseCommand}" Content="Close" />
-                        <TextBlock VerticalAlignment="Center" Text="Dust cover " />
-                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding DustCoverState}" />
-                        <TextBlock VerticalAlignment="Center" Text="  " />
-                        <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOnCommand}" Content="On" />
-                        <Button Margin="0,0,3,0" Padding="8,2" Command="{Binding DustCoverOffCommand}" Content="Off" />
-                    </WrapPanel>
-                    <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="Filter " />
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Foreground="Gray" Text="{Binding FilterState}" />
-                        <ComboBox Width="150" DisplayMemberPath="Name" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}" ToolTip="Select a filter to move the filter wheel to" />
-                    </WrapPanel>
-                    <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="PHD2 " />
-                        <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding GuiderState}" />
-                        <Button Margin="8,0,0,0" Padding="8,2" Command="{Binding ConnectGuiderCommand}" Content="Connect PHD2" />
-                    </WrapPanel>
-                    <TextBlock Margin="0,4,0,0" Foreground="Gray" Text="{Binding DeviceStatus, StringFormat='Devices: {0}'}" />
-
-                    <TextBlock Margin="0,14,0,4" FontWeight="Bold" Text="RA/Dec → Alt/Az (from a log)" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <!--  RIGHT: converter, target, mount + edit, check frame, notes  -->
+                    <Grid Grid.Column="1" Width="430">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,4" Text="RA" />
-                        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,6,4" Text="{Binding RaInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Decimal or H M S" />
-                        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
-                            <TextBlock VerticalAlignment="Center" Margin="0,0,4,0" FontWeight="Bold" Foreground="#ED9F27" Text="⚠" Cursor="Help">
-                                <TextBlock.ToolTip>
-                                    <ToolTip MaxWidth="300">
-                                        <TextBlock TextWrapping="Wrap" Text="RA units for the box on the left. ON = RA in hours (decimal or H M S). OFF = RA in degrees (decimal or D M S). N.I.N.A. session logs give RA in degrees, so leave this OFF when pasting from a log." />
-                                    </ToolTip>
-                                </TextBlock.ToolTip>
-                            </TextBlock>
-                            <CheckBox VerticalAlignment="Center" Content="hours" IsChecked="{Binding RaInHours}" />
+
+                        <StackPanel Grid.Row="0" Orientation="Vertical">
+                            <TextBlock Margin="0,0,0,4" FontWeight="Bold" Text="RA/Dec → Alt/Az (from a log)" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,4" Text="RA" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,6,4" Text="{Binding RaInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Decimal or H M S" />
+                                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
+                                    <TextBlock VerticalAlignment="Center" Margin="0,0,4,0" FontWeight="Bold" Foreground="#ED9F27" Text="⚠" Cursor="Help">
+                                        <TextBlock.ToolTip>
+                                            <ToolTip MaxWidth="300">
+                                                <TextBlock TextWrapping="Wrap" Text="RA units for the box on the left. ON = RA in hours (decimal or H M S). OFF = RA in degrees (decimal or D M S). N.I.N.A. session logs give RA in degrees, so leave this OFF when pasting from a log." />
+                                            </ToolTip>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                    <CheckBox VerticalAlignment="Center" Content="hours" IsChecked="{Binding RaInHours}" />
+                                </StackPanel>
+                                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,4" Text="Dec" />
+                                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,4" Text="{Binding DecInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Decimal or D M S" />
+                                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,0" Text="Time" />
+                                <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding TimeInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Local date/time; blank = now" />
+                            </Grid>
+                            <Button Margin="0,6,0,0" HorizontalAlignment="Left" Padding="12,2" Command="{Binding ConvertRaDecCommand}" Content="Convert → crosshair" />
+                            <TextBlock Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap" Text="{Binding ConverterStatus}" />
                         </StackPanel>
-                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,4" Text="Dec" />
-                        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,4" Text="{Binding DecInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Decimal or D M S" />
-                        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,6,0" Text="Time" />
-                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding TimeInput, UpdateSourceTrigger=PropertyChanged}" ToolTip="Local date/time; blank = now" />
+
+                        <StackPanel Grid.Row="1" Orientation="Vertical">
+                            <TextBlock Margin="0,14,0,4" FontWeight="Bold" Text="Target / crosshair" />
+                            <WrapPanel Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="Az" />
+                                <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAzimuth, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock VerticalAlignment="Center" Text="Alt" />
+                                <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAltitude, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Padding="8,2" Command="{Binding TargetToMountCommand}" Content="= mount" ToolTip="Copy the current mount Az/Alt into the target/crosshair" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="Time" />
+                                <TextBox Width="38" Margin="4,0,2,0" Text="{Binding TimeStepMinutes, StringFormat=F0, UpdateSourceTrigger=PropertyChanged}" ToolTip="Time step in minutes (traces the sky/RA track)" />
+                                <TextBlock VerticalAlignment="Center" Text="m " />
+                                <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding TimeMinusCommand}" Content="Time −" />
+                                <Button Margin="0,0,12,0" Padding="6,2" Command="{Binding TimePlusCommand}" Content="Time +" />
+                                <TextBlock VerticalAlignment="Center" Text="Step" />
+                                <TextBox Width="38" Margin="4,0,2,0" Text="{Binding NudgeStep, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" ToolTip="Az/Alt step in degrees" />
+                                <TextBlock VerticalAlignment="Center" Text="° " />
+                                <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AzMinusCommand}" Content="Az −" />
+                                <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AzPlusCommand}" Content="Az +" />
+                                <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AltMinusCommand}" Content="Alt −" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
+                                <Button Margin="0,0,0,0" Padding="6,2" Command="{Binding AltPlusCommand}" Content="Alt +" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Orientation="Vertical">
+                            <TextBlock Margin="0,14,0,4" FontWeight="Bold" Text="Mount" />
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding SlewCommand}" Content="Slew" />
+                                <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding StopCommand}" Content="STOP" />
+                                <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TrackingOnCommand}" Content="Track on" />
+                                <Button Margin="0,0,6,0" Padding="8,2" Command="{Binding TrackingOffCommand}" Content="Track off" />
+                                <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" Foreground="Gray" Text="{Binding MountStatus, StringFormat='Mount: {0}'}" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,8,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="Edit horizon:  " />
+                                <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding PlaceConfirmCommand}" Content="Place / Confirm" ToolTip="Add a point at the crosshair, or update the selected point to the crosshair" />
+                                <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding DeleteCommand}" Content="Delete" IsEnabled="{Binding HasSelection}" />
+                                <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding UndoCommand}" Content="Undo" />
+                                <Button Padding="12,2" Command="{Binding SaveCommand}" Content="Save" ToolTip="Write the .hrz and reload it into N.I.N.A." />
+                            </WrapPanel>
+                            <TextBlock Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap" Text="{Binding EditStatus, StringFormat='{}{0}'}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Orientation="Vertical">
+                            <TextBlock Margin="0,14,0,6" FontWeight="Bold" Text="Check frame" />
+                            <WrapPanel Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="Exp" />
+                                <TextBox Width="50" Margin="4,0,2,0" Text="{Binding CameraExposure, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock VerticalAlignment="Center" Text="s  Gain" />
+                                <TextBox Width="50" Margin="4,0,10,0" Text="{Binding CameraGain, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Margin="0,0,4,0" Padding="10,2" Command="{Binding CaptureCommand}" Content="Capture" />
+                                <Button Padding="8,2" Command="{Binding AbortCaptureCommand}" Content="Abort" />
+                            </WrapPanel>
+                            <TextBlock Margin="0,6,0,4" Foreground="Gray" TextWrapping="Wrap" Text="{Binding CameraStatus, StringFormat='Camera: {0}'}" />
+                        </StackPanel>
+
+                        <!--  Auto row: the frame always uses the full column width at its own aspect ratio
+                              (border hugs the image, no side bars); never shrunk by the Notes box.  -->
+                        <Border Grid.Row="4" VerticalAlignment="Top" BorderBrush="#2A3646" BorderThickness="1">
+                            <Image Source="{Binding LastFrame}" Stretch="Uniform" />
+                        </Border>
+
+                        <!--  Row 5 (*) is spacer: keeps Notes pinned to the bottom.  -->
+
+                        <StackPanel Grid.Row="6" Margin="0,10,0,0" Orientation="Vertical">
+                            <TextBlock FontWeight="Bold" Text="Notes" />
+                            <!--  Fixed 4-line box: line height pinned to 16 so Height = 4 x 16 + padding/border;
+                                  a 5th line brings up the scrollbar instead of growing the box.  -->
+                            <TextBox
+                                Height="74"
+                                Padding="2,2,2,2"
+                                TextBlock.LineHeight="16"
+                                TextBlock.LineStackingStrategy="BlockLineHeight"
+                                Margin="0,4,0,0"
+                                AcceptsReturn="True"
+                                Text="{Binding Notes, UpdateSourceTrigger=LostFocus}"
+                                TextWrapping="Wrap"
+                                VerticalScrollBarVisibility="Auto"
+                                ToolTip="Session scratchpad - day focus position, gain/offset, filter, rotation, target. Saved with the profile." />
+                        </StackPanel>
                     </Grid>
-                    <Button Margin="0,6,0,0" HorizontalAlignment="Left" Padding="12,2" Command="{Binding ConvertRaDecCommand}" Content="Convert → crosshair" />
-                    <TextBlock Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap" Text="{Binding ConverterStatus}" />
-
-                    <TextBlock Margin="0,14,0,4" FontWeight="Bold" Text="Target / crosshair" />
-                    <WrapPanel Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="Az" />
-                        <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAzimuth, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock VerticalAlignment="Center" Text="Alt" />
-                        <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAltitude, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
-                        <Button Padding="8,2" Command="{Binding TargetToMountCommand}" Content="= mount" ToolTip="Copy the current mount Az/Alt into the target/crosshair" />
-                    </WrapPanel>
-                    <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="Time" />
-                        <TextBox Width="38" Margin="4,0,2,0" Text="{Binding TimeStepMinutes, StringFormat=F0, UpdateSourceTrigger=PropertyChanged}" ToolTip="Time step in minutes (traces the sky/RA track)" />
-                        <TextBlock VerticalAlignment="Center" Text="m " />
-                        <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding TimeMinusCommand}" Content="Time −" />
-                        <Button Margin="0,0,12,0" Padding="6,2" Command="{Binding TimePlusCommand}" Content="Time +" />
-                        <TextBlock VerticalAlignment="Center" Text="Step" />
-                        <TextBox Width="38" Margin="4,0,2,0" Text="{Binding NudgeStep, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" ToolTip="Az/Alt step in degrees" />
-                        <TextBlock VerticalAlignment="Center" Text="° " />
-                        <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AzMinusCommand}" Content="Az −" />
-                        <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AzPlusCommand}" Content="Az +" />
-                        <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AltMinusCommand}" Content="Alt −" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
-                        <Button Margin="0,0,0,0" Padding="6,2" Command="{Binding AltPlusCommand}" Content="Alt +" ToolTip="Direct altitude nudge (editing convenience, not a sky track)" />
-                    </WrapPanel>
-
-                    <TextBlock Margin="0,14,0,6" FontWeight="Bold" Text="Check frame" />
-                    <WrapPanel Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="Exp" />
-                        <TextBox Width="50" Margin="4,0,2,0" Text="{Binding CameraExposure, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock VerticalAlignment="Center" Text="s  Gain" />
-                        <TextBox Width="50" Margin="4,0,10,0" Text="{Binding CameraGain, UpdateSourceTrigger=PropertyChanged}" />
-                        <Button Margin="0,0,4,0" Padding="10,2" Command="{Binding CaptureCommand}" Content="Capture" />
-                        <Button Padding="8,2" Command="{Binding AbortCaptureCommand}" Content="Abort" />
-                    </WrapPanel>
-                    <TextBlock Margin="0,6,0,4" Foreground="Gray" TextWrapping="Wrap" Text="{Binding CameraStatus, StringFormat='Camera: {0}'}" />
-                    <Border BorderBrush="#2A3646" BorderThickness="1">
-                        <Image MaxHeight="360" Source="{Binding LastFrame}" Stretch="Uniform" />
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
-        </Grid>
+                </Grid>
+            </Border>
+        </ScrollViewer>
     </DataTemplate>
 </ResourceDictionary>
