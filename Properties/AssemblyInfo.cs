@@ -5,8 +5,13 @@ using System.Runtime.InteropServices;
 // the first release, or N.I.N.A. will treat every future build as a different plugin.
 [assembly: Guid("b3d4e2a1-7c6f-4a2b-9e10-2f8c5a1d3b44")]
 
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+// Version: set ONLY in PluginVersion.Value (end of this file); both attributes read it. N.I.N.A. compares this
+// to decide what is "newer", so it must go up with every release (see CHANGELOG.md):
+//   Major.Minor.Patch.Build - Major = breaking/big redesign, Minor = new features,
+//   Patch = bug fixes, Build = re-release of the same code (e.g. a manifest fix).
+// Never reuse a number that was already released; tag each release vX.Y.Z.B in git.
+[assembly: AssemblyVersion(PluginVersion.Value)]
+[assembly: AssemblyFileVersion(PluginVersion.Value)]
 
 [assembly: AssemblyTitle("Interactive Horizon Builder")]
 [assembly: AssemblyDescription("Edits or creates a horizon within N.I.N.A. based on manual data entry or by using connected gear (mount, camera etc).")]
@@ -22,7 +27,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("Repository", "https://github.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin")]
 [assembly: AssemblyMetadata("Homepage", "https://github.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin")]
 [assembly: AssemblyMetadata("Tags", "Horizon,Custom Horizon,Sky Dome,Azimuth,Obstruction")]
-[assembly: AssemblyMetadata("ChangelogURL", "")]
+[assembly: AssemblyMetadata("ChangelogURL", "https://github.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin/blob/master/CHANGELOG.md")]
 [assembly: AssemblyMetadata("FeaturedImageURL", "https://raw.githubusercontent.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin/master/assets/Logo.png")]
 [assembly: AssemblyMetadata("ScreenshotURL", "")]
 [assembly: AssemblyMetadata("AltScreenshotURL", "")]
@@ -63,3 +68,8 @@ The Sun: when up, it shows red 15° / yellow 30° rings and today's dashed path;
 Notes: a scratchpad saved with your profile.")]
 
 [assembly: ComVisible(false)]
+
+// The single place to change the plugin version (see the rules at the top of this file).
+internal static class PluginVersion {
+    public const string Value = "0.1.0.0";
+}
