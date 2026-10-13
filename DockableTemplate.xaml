@@ -37,7 +37,10 @@
 
                         <TextBlock Grid.Row="0" Margin="0,0,0,4" FontSize="16" FontWeight="Bold" Text="Interactive Horizon Builder" />
 
-                        <TextBlock Grid.Row="1" Margin="0,0,0,8" Foreground="Gray" Text="{Binding MountHeader}" />
+                        <DockPanel Grid.Row="1" Margin="0,0,0,8" LastChildFill="True">
+                            <CheckBox DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Center" Content="Follow N.I.N.A. colours" IsChecked="{Binding FollowNinaTheme}" ToolTip="Off = the plugin's own chart colours. On = N.I.N.A.'s colour schema, incl. the night (alternative) colours." />
+                            <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="{Binding MountHeader}" />
+                        </DockPanel>
 
                         <Viewbox Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Uniform">
                             <local:SkyDomeView
@@ -50,6 +53,9 @@
                                 MountAzimuth="{Binding MountAzimuth}"
                                 PointPickedCommand="{Binding PointPickedCommand}"
                                 RedrawTrigger="{Binding EditVersion}"
+                                FollowTheme="{Binding FollowNinaTheme}"
+                                ThemeProbe="{DynamicResource PrimaryBrush}"
+                                ThemeProbe2="{DynamicResource BackgroundBrush}"
                                 SelectedIndex="{Binding SelectedIndex}"
                                 SunAltitude="{Binding SunAltitude}"
                                 SunAzimuth="{Binding SunAzimuth}"
@@ -66,6 +72,9 @@
                             MountAzimuth="{Binding MountAzimuth}"
                             PointPickedCommand="{Binding PointPickedCommand}"
                             RedrawTrigger="{Binding EditVersion}"
+                            FollowTheme="{Binding FollowNinaTheme}"
+                            ThemeProbe="{DynamicResource PrimaryBrush}"
+                            ThemeProbe2="{DynamicResource BackgroundBrush}"
                             SelectedIndex="{Binding SelectedIndex}"
                             SunAltitude="{Binding SunAltitude}"
                             SunAzimuth="{Binding SunAzimuth}"

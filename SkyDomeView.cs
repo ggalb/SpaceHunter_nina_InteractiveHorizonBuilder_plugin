@@ -66,27 +66,60 @@ namespace InteractiveHorizonBuilder {
         public int RedrawTrigger { get => (int)GetValue(RedrawTriggerProperty); set => SetValue(RedrawTriggerProperty, value); }
         public ICommand PointPickedCommand { get => (ICommand)GetValue(PointPickedCommandProperty); set => SetValue(PointPickedCommandProperty, value); }
 
-        private static readonly Brush SkyBrush = Frozen(Color.FromRgb(0x0E, 0x16, 0x26));
-        private static readonly Brush TerrainBrush = Frozen(Color.FromRgb(0x3A, 0x2A, 0x18));
-        private static readonly Pen HorizonPen = FrozenPen(Color.FromRgb(0xC8, 0x79, 0x2E), 2.0);
-        private static readonly Pen GridPen = FrozenPen(Color.FromRgb(0x33, 0x41, 0x52), 1.0);
-        private static readonly Pen RimPen = FrozenPen(Color.FromRgb(0x8A, 0x5A, 0x2E), 1.5);
-        private static readonly Brush GridLabelBrush = Frozen(Color.FromRgb(0x9A, 0xA4, 0xB2));
-        private static readonly Brush CardinalBrush = Frozen(Color.FromRgb(0xE0, 0xA4, 0x00));
-        private static readonly Brush MountBrush = Frozen(Color.FromRgb(0x3F, 0xC8, 0xE0));
-        private static readonly Pen MountPen = FrozenPen(Color.FromRgb(0x3F, 0xC8, 0xE0), 1.5);
-        private static readonly Brush PointBrush = Frozen(Color.FromRgb(0xC8, 0xCD, 0xD5));
-        private static readonly Brush UnsavedBrush = Frozen(Color.FromRgb(0xE2, 0x4B, 0x4A));
-        private static readonly Pen SelectedPen = FrozenPen(Color.FromRgb(0xED, 0xA1, 0x00), 2.0);
-        private static readonly Pen CrosshairPen = FrozenPen(Color.FromRgb(0xFF, 0xFF, 0xFF), 1.0);
-        private static readonly Brush SunBrush = Frozen(Color.FromRgb(0xFF, 0xD1, 0x00));
-        private static readonly Pen SunPathPen = FrozenDashPen(Color.FromRgb(0xE0, 0xA4, 0x00), 1.0);
-        private static readonly Pen Ring15Pen = FrozenDashPen(Color.FromRgb(0xE2, 0x4B, 0x4A), 1.5);
-        private static readonly Pen Ring30Pen = FrozenDashPen(Color.FromRgb(0xED, 0xA1, 0x00), 1.5);
+        // Colours: Classic (own) or N.I.N.A.'s colour schema, rebuilt per render (see ChartPalette).
+        public static readonly DependencyProperty FollowThemeProperty =
+            DependencyProperty.Register(nameof(FollowTheme), typeof(bool), typeof(SkyDomeView),
+                new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+        // Bound to {DynamicResource PrimaryBrush} / BackgroundBrush: only there to repaint when
+        // N.I.N.A. switches colour schema (brush replaced or its colour changed).
+        public static readonly DependencyProperty ThemeProbeProperty =
+            DependencyProperty.Register(nameof(ThemeProbe), typeof(Brush), typeof(SkyDomeView),
+                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty ThemeProbe2Property =
+            DependencyProperty.Register(nameof(ThemeProbe2), typeof(Brush), typeof(SkyDomeView),
+                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+        public bool FollowTheme { get => (bool)GetValue(FollowThemeProperty); set => SetValue(FollowThemeProperty, value); }
+        public Brush ThemeProbe { get => (Brush)GetValue(ThemeProbeProperty); set => SetValue(ThemeProbeProperty, value); }
+        public Brush ThemeProbe2 { get => (Brush)GetValue(ThemeProbe2Property); set => SetValue(ThemeProbe2Property, value); }
 
-        private static Brush Frozen(Color c) { var b = new SolidColorBrush(c); b.Freeze(); return b; }
-        private static Pen FrozenDashPen(Color c, double w) { var p = new Pen(Frozen(c), w) { DashStyle = new DashStyle(new double[] { 4, 3 }, 0) }; p.Freeze(); return p; }
-        private static Pen FrozenPen(Color c, double w) { var p = new Pen(Frozen(c), w); p.Freeze(); return p; }
+        private Brush SkyBrush;
+        private Brush TerrainBrush;
+        private Pen HorizonPen;
+        private Pen GridPen;
+        private Pen RimPen;
+        private Brush GridLabelBrush;
+        private Brush CardinalBrush;
+        private Brush MountBrush;
+        private Pen MountPen;
+        private Brush PointBrush;
+        private Brush UnsavedBrush;
+        private Pen SelectedPen;
+        private Pen CrosshairPen;
+        private Brush SunBrush;
+        private Pen SunPathPen;
+        private Pen Ring15Pen;
+        private Pen Ring30Pen;
+
+        private void ApplyPalette() {
+            var p = FollowTheme ? ChartPalette.FromTheme(this) : ChartPalette.Classic;
+            SkyBrush = ChartPalette.Brush(p.Sky);
+            TerrainBrush = ChartPalette.Brush(p.Terrain);
+            HorizonPen = ChartPalette.Pen(p.Horizon, 2.0);
+            GridPen = ChartPalette.Pen(p.DomeGrid, 1.0);
+            RimPen = ChartPalette.Pen(p.Rim, 1.5);
+            GridLabelBrush = ChartPalette.Brush(p.GridLabel);
+            CardinalBrush = ChartPalette.Brush(p.Cardinal);
+            MountBrush = ChartPalette.Brush(p.Mount);
+            MountPen = ChartPalette.Pen(p.Mount, 1.5);
+            PointBrush = ChartPalette.Brush(p.Point);
+            UnsavedBrush = ChartPalette.Brush(p.Unsaved);
+            SelectedPen = ChartPalette.Pen(p.Selected, 2.0);
+            CrosshairPen = ChartPalette.Pen(p.Crosshair, 1.0);
+            SunBrush = ChartPalette.Brush(p.Sun);
+            SunPathPen = ChartPalette.DashPen(p.SunPath, 1.0);
+            Ring15Pen = ChartPalette.DashPen(p.Ring15, 1.5);
+            Ring30Pen = ChartPalette.DashPen(p.Ring30, 1.5);
+        }
 
         public SkyDomeView() {
             Cursor = Cursors.Cross;
@@ -138,6 +171,7 @@ namespace InteractiveHorizonBuilder {
         }
 
         protected override void OnRender(DrawingContext dc) {
+            ApplyPalette();
             double w = ActualWidth, h = ActualHeight;
             if (w <= 0 || h <= 0) return;
             dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, w, h));

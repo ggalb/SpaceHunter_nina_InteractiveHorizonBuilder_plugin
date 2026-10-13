@@ -84,6 +84,7 @@ namespace InteractiveHorizonBuilder {
 
             pluginSettings = new PluginOptionsAccessor(profileService, PluginGuid);
             notes = pluginSettings.GetValueString(nameof(Notes), "");
+            followNinaTheme = pluginSettings.GetValueBoolean(nameof(FollowNinaTheme), false);
 
             Model = HorizonModel.Load(profileService.ActiveProfile.AstrometrySettings.HorizonFilePath, out var loadReport);
             HorizonLoaded = Model.Points.Count > 0;
@@ -186,6 +187,13 @@ namespace InteractiveHorizonBuilder {
         public string Notes {
             get => notes;
             set { notes = value; RaisePropertyChanged(); pluginSettings?.SetValueString(nameof(Notes), value ?? ""); }
+        }
+
+        private bool followNinaTheme;
+        /// <summary>Chart colours: false = the plugin's own palette, true = N.I.N.A.'s colour schema (day/night).</summary>
+        public bool FollowNinaTheme {
+            get => followNinaTheme;
+            set { followNinaTheme = value; RaisePropertyChanged(); pluginSettings?.SetValueBoolean(nameof(FollowNinaTheme), value); }
         }
 
         // ---- Live mount state --------------------------------------------------
