@@ -11,3 +11,6 @@ obj/
 HANDOVER.md
 PLAN.md
 NINA_Submission_Notes.md
+
+# backups the plugin writes next to a .hrz on the first save per session
+*.hrz.bak

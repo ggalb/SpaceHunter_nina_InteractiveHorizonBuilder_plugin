@@ -101,6 +101,8 @@ namespace InteractiveHorizonBuilder {
             DeleteCommand = new RelayCommand(DeleteSelected);
             UndoCommand = new RelayCommand(Undo);
             SaveCommand = new RelayCommand(Save);
+            SaveAsCommand = new RelayCommand(SaveAs);
+            OpenCommand = new RelayCommand(Open);
             AzMinusCommand = new RelayCommand(() => NudgeTarget(-NudgeStep, 0));
             AzPlusCommand = new RelayCommand(() => NudgeTarget(NudgeStep, 0));
             AltMinusCommand = new RelayCommand(() => NudgeTarget(0, -NudgeStep));
@@ -243,6 +245,8 @@ namespace InteractiveHorizonBuilder {
         public ICommand DeleteCommand { get; }
         public ICommand UndoCommand { get; }
         public ICommand SaveCommand { get; }
+        public ICommand SaveAsCommand { get; }
+        public ICommand OpenCommand { get; }
         public ICommand AzMinusCommand { get; }
         public ICommand AzPlusCommand { get; }
         public ICommand AltMinusCommand { get; }
@@ -337,26 +341,113 @@ namespace InteractiveHorizonBuilder {
             Bump();
         }
 
+        private const string HrzFilter = "Horizon file (*.hrz)|*.hrz|All files (*.*)|*.*";
+        private readonly HashSet<string> backedUpThisSession = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>The .hrz the panel edits = the one linked in N.I.N.A. (Options > General > Astrometry).</summary>
+        public string HorizonFileLabel {
+            get {
+                var path = profileService.ActiveProfile.AstrometrySettings.HorizonFilePath;
+                return string.IsNullOrWhiteSpace(path) ? "File: none linked - use Save As... or Open..." : "File: " + System.IO.Path.GetFileName(path);
+            }
+        }
+
         private void Save() {
             var path = profileService.ActiveProfile.AstrometrySettings.HorizonFilePath;
             if (string.IsNullOrWhiteSpace(path)) {
-                EditStatus = "No horizon file set (Options -> General -> Horizon)";
+                SaveAs();
                 return;
             }
+            SaveTo(path);
+        }
+
+        private void SaveAs() {
+            if (Model.Points.Count < 2) {
+                EditStatus = "Need at least 2 points - N.I.N.A. rejects a horizon with fewer";
+                return;
+            }
+            var current = profileService.ActiveProfile.AstrometrySettings.HorizonFilePath;
+            var dialog = new Microsoft.Win32.SaveFileDialog {
+                Title = "Save horizon as",
+                Filter = HrzFilter,
+                DefaultExt = ".hrz",
+                FileName = string.IsNullOrWhiteSpace(current) ? "horizon.hrz" : System.IO.Path.GetFileName(current),
+                InitialDirectory = DirectoryOf(current)
+            };
+            if (dialog.ShowDialog() != true) return;
+            SaveTo(dialog.FileName);
+        }
+
+        /// <summary>
+        /// Writes the .hrz, then links and reloads it in N.I.N.A. The first save of an existing file per
+        /// session first copies it to .hrz.bak, so one bad save is never permanent.
+        /// </summary>
+        private void SaveTo(string path) {
             if (Model.Points.Count < 2) {
                 EditStatus = "Need at least 2 points - N.I.N.A. rejects a horizon with fewer";
                 return;
             }
             try {
+                string backup = null;
+                if (System.IO.File.Exists(path) && backedUpThisSession.Add(path)) {
+                    backup = path + ".bak";
+                    System.IO.File.Copy(path, backup, true);
+                }
                 Model.Save(path);
                 var settings = profileService.ActiveProfile.AstrometrySettings;
                 settings.Horizon = CustomHorizon.FromFilePath(path);
                 settings.HorizonFilePath = path;
-                EditStatus = $"Saved {Model.Points.Count} points to {System.IO.Path.GetFileName(path)}";
+                EditStatus = $"Saved {Model.Points.Count} points to {System.IO.Path.GetFileName(path)}"
+                    + (backup != null ? $" (previous version kept as {System.IO.Path.GetFileName(backup)})" : "");
+                RaisePropertyChanged(nameof(HorizonFileLabel));
                 Bump();
             } catch (Exception ex) {
                 EditStatus = "Save error: " + ex.Message;
             }
+        }
+
+        /// <summary>Loads any .hrz into the editor and links it in N.I.N.A., so the panel always edits what N.I.N.A. uses.</summary>
+        private void Open() {
+            if (Model.HasUnsaved) {
+                var answer = MessageBox.Show("The horizon has unsaved changes. Discard them and open another file?",
+                    "Unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (answer != MessageBoxResult.Yes) return;
+            }
+            var current = profileService.ActiveProfile.AstrometrySettings.HorizonFilePath;
+            var dialog = new Microsoft.Win32.OpenFileDialog {
+                Title = "Open horizon",
+                Filter = HrzFilter,
+                InitialDirectory = DirectoryOf(current)
+            };
+            if (dialog.ShowDialog() != true) return;
+            var path = dialog.FileName;
+
+            CustomHorizon ninaHorizon;
+            try {
+                ninaHorizon = CustomHorizon.FromFilePath(path);
+            } catch (Exception ex) {
+                EditStatus = $"N.I.N.A. can't use {System.IO.Path.GetFileName(path)}: {ex.Message}";
+                return;
+            }
+            var settings = profileService.ActiveProfile.AstrometrySettings;
+            settings.Horizon = ninaHorizon;
+            settings.HorizonFilePath = path;
+
+            Model = HorizonModel.Load(path, out var report);
+            undoStack.Clear();
+            SelectedIndex = -1;
+            HorizonLoaded = Model.Points.Count > 0;
+            EditStatus = report ?? $"Opened {System.IO.Path.GetFileName(path)} ({Model.Points.Count} points) - now N.I.N.A.'s horizon";
+            RaisePropertyChanged(nameof(HorizonFileLabel));
+            Bump();
+        }
+
+        private static string DirectoryOf(string path) {
+            var fallback = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            try {
+                var dir = string.IsNullOrWhiteSpace(path) ? null : System.IO.Path.GetDirectoryName(path);
+                return dir != null && System.IO.Directory.Exists(dir) ? dir : fallback;
+            } catch { return fallback; }
         }
 
         private void NudgeTarget(double dAz, double dAlt) {

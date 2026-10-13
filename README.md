@@ -19,9 +19,9 @@ By Space Hunter - Georg G Albrecht.
 - Gear is optional: the plugin works offline, and every device (mount,
   camera, focuser, **rotator**, filter wheel, flat panel, **PHD2**) is optional -
   use only what you have connected.
-- An existing `.hrz` horizon file. No `.hrz` yet? Download
-  [`template.hrz`](template.hrz) from this repo (a flat line at 15° altitude)
-  and link it in **Options > General > Astrometry**.
+- A `.hrz` horizon file is optional. No `.hrz` yet? Place at least two points
+  and use **Save As...**, or download [`template.hrz`](template.hrz) from this
+  repo (a flat line at 15° altitude) and **Open...** it.
 
 ## Installation
 
@@ -47,8 +47,8 @@ By Space Hunter - Georg G Albrecht.
 > collisions before using it unattended. Rotators with limited travel (less
 > than 360°) can drive into a hard stop. The plugin works fine without a
 > rotator connected.
-- **Test on a copy of your `.hrz`** (Save overwrites in place). Link the copy
-  in Options > General > Astrometry and restart N.I.N.A.
+- **Test on a copy of your `.hrz`**: use **Open...** on a copy. Save also keeps
+  the previous version as `.hrz.bak` (first save of a file per session).
 - Connect your gear.
 
 ## The views
@@ -71,7 +71,12 @@ night colours.
 - **Place / Confirm** adds a point at the crosshair, or moves the selected one
   there. **Delete** / **Undo** as needed.
 - **Save** writes the `.hrz` and reloads it (red dots turn gray). Unsaved edits
-  are lost until you Save.
+  are lost until you Save. The first save of a file per session keeps the
+  previous version as `name.hrz.bak`.
+- **Save As...** saves to a new file; **Open...** loads any `.hrz`. Either one
+  makes that file N.I.N.A.'s horizon (Options > General > Astrometry), so the
+  panel always edits what N.I.N.A. uses. The file in use is shown under the
+  status line.
 - **Vertical steps:** N.I.N.A. keeps only one altitude per azimuth. Place a
   point straight above or below another and the plugin makes it a step: the
   higher point stays, the lower one moves 0.01° to the open side.
