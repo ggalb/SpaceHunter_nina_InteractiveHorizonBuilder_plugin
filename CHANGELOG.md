@@ -8,10 +8,11 @@ All notable changes to Interactive Horizon Builder. Versions follow
 - **Patch** - bug fixes
 - **Build** - re-release of the same code (e.g. packaging/manifest fix)
 
-## 0.1.2.0 - unreleased (test branch `theme-test`)
+## 0.1.2.1 - unreleased
 
-- Optional "Follow N.I.N.A. colours" checkbox: charts use N.I.N.A.'s colour
-  schema, incl. the night (alternative) colours. Off by default.
+- Optional "Chart colours from N.I.N.A. theme" switch next to the title:
+  charts use N.I.N.A.'s colour schema, incl. the night (alternative) colours.
+  Off by default (the plugin's own colours).
 
 ## 0.1.1.0 - unreleased
 

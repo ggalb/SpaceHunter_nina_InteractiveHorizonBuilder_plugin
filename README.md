@@ -60,6 +60,10 @@ Cyan = mount, white cross = crosshair (your working point / slew target).
 
 On the Strip: mouse wheel zooms, left-drag pans, right-click resets the view.
 
+**Chart colours from N.I.N.A. theme** (switch next to the title): off = the
+plugin's own colours (default); on = N.I.N.A.'s colour schema, including its
+night colours.
+
 ## Editing
 
 - Select a dot (its Az/Alt load into Target), or click empty sky to move the
