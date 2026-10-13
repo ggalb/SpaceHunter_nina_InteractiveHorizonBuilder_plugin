@@ -8,7 +8,7 @@ All notable changes to Interactive Horizon Builder. Versions follow
 - **Patch** - bug fixes
 - **Build** - re-release of the same code (e.g. packaging/manifest fix)
 
-## 0.2.0.0 - unreleased
+## 0.2.0.0 - 2026-10-13
 
 - Horizon views now use exactly the same calculation as N.I.N.A. (and Target
   Scheduler), including how N.I.N.A. closes the line at north when the file
