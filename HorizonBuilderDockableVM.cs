@@ -85,8 +85,9 @@ namespace InteractiveHorizonBuilder {
             pluginSettings = new PluginOptionsAccessor(profileService, PluginGuid);
             notes = pluginSettings.GetValueString(nameof(Notes), "");
 
-            Model = HorizonModel.Load(profileService.ActiveProfile.AstrometrySettings.HorizonFilePath);
+            Model = HorizonModel.Load(profileService.ActiveProfile.AstrometrySettings.HorizonFilePath, out var loadReport);
             HorizonLoaded = Model.Points.Count > 0;
+            if (loadReport != null) editStatus = loadReport;
 
             SlewCommand = new AsyncRelayCommand(SlewToTargetAsync);
             StopCommand = new RelayCommand(Stop);
@@ -274,18 +275,30 @@ namespace InteractiveHorizonBuilder {
 
         private void PlaceOrConfirm() {
             PushUndo();
+            // Round to the 0.01° Save writes, so a point can't collide with a neighbour only after saving.
+            double az = HorizonModel.NormalizeAzimuth(TargetAzimuth);
+            double alt = Math.Round(TargetAltitude, 2);
             HorizonPoint edited;
+            string status;
             if (SelectedIndex >= 0 && SelectedIndex < Model.Points.Count) {
                 edited = Model.Points[SelectedIndex];
-                edited.Azimuth = ((TargetAzimuth % 360) + 360) % 360;
-                edited.Altitude = TargetAltitude;
+                edited.Azimuth = az;
+                edited.Altitude = alt;
                 edited.Unsaved = true;
-                EditStatus = "Point updated (unsaved)";
+                status = "Point updated (unsaved)";
             } else {
-                edited = new HorizonPoint(((TargetAzimuth % 360) + 360) % 360, TargetAltitude, true);
+                edited = new HorizonPoint(az, alt, true);
                 Model.Points.Add(edited);
-                EditStatus = "Point added (unsaved)";
+                status = "Point added (unsaved)";
             }
+            // N.I.N.A. keeps one altitude per azimuth: turn a same-azimuth pair into a 0.01° step.
+            if (!Model.ResolveStep(edited, out var stepMessage)) {
+                Model = undoStack.Pop();
+                EditStatus = stepMessage;
+                Bump();
+                return;
+            }
+            EditStatus = stepMessage ?? status;
             Model.Sort();
             SelectedIndex = Model.Points.IndexOf(edited);
             HorizonLoaded = Model.Points.Count > 0;
@@ -320,6 +333,10 @@ namespace InteractiveHorizonBuilder {
             var path = profileService.ActiveProfile.AstrometrySettings.HorizonFilePath;
             if (string.IsNullOrWhiteSpace(path)) {
                 EditStatus = "No horizon file set (Options -> General -> Horizon)";
+                return;
+            }
+            if (Model.Points.Count < 2) {
+                EditStatus = "Need at least 2 points - N.I.N.A. rejects a horizon with fewer";
                 return;
             }
             try {

@@ -8,6 +8,23 @@ All notable changes to Interactive Horizon Builder. Versions follow
 - **Patch** - bug fixes
 - **Build** - re-release of the same code (e.g. packaging/manifest fix)
 
+## 0.1.1.0 - unreleased
+
+- Horizon views now use exactly the same calculation as N.I.N.A. (and Target
+  Scheduler), including how N.I.N.A. closes the line at north when the file
+  has no 0° or 360° point.
+- 0° and 360° are kept as separate points, as in N.I.N.A.
+- Vertical steps: N.I.N.A. keeps only one altitude per azimuth, so a point
+  placed at the same azimuth as another now becomes a step - the higher point
+  stays, the lower one moves 0.01° to the open side. A third point on an
+  existing step is refused.
+- Opening a .hrz with duplicate azimuths, lines N.I.N.A. ignores or azimuths
+  outside 0-360 fixes them on load and reports it (fixed points show red
+  until saved).
+- Save refuses a horizon with fewer than 2 points (N.I.N.A. rejects it).
+- Az / Alt boxes show 2 decimals and keep what you type (applied when you
+  leave the box); the nudge step accepts 0.01.
+
 ## 0.1.0.0 - 2026-10-05
 
 First release.

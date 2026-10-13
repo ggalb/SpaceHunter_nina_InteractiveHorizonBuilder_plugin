@@ -173,9 +173,9 @@
                             <TextBlock Margin="0,14,0,4" FontWeight="Bold" Text="Target / crosshair" />
                             <WrapPanel Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="Az" />
-                                <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAzimuth, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAzimuth, StringFormat=F2, UpdateSourceTrigger=LostFocus}" ToolTip="Azimuth 0-360 (0 and 360 are separate points). Applied when you leave the box." />
                                 <TextBlock VerticalAlignment="Center" Text="Alt" />
-                                <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAltitude, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="60" Margin="4,0,10,0" Text="{Binding TargetAltitude, StringFormat=F2, UpdateSourceTrigger=LostFocus}" ToolTip="Applied when you leave the box." />
                                 <Button Padding="8,2" Command="{Binding TargetToMountCommand}" Content="= mount" ToolTip="Copy the current mount Az/Alt into the target/crosshair" />
                             </WrapPanel>
                             <WrapPanel Margin="0,6,0,0" Orientation="Horizontal">
@@ -185,7 +185,7 @@
                                 <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding TimeMinusCommand}" Content="Time −" />
                                 <Button Margin="0,0,12,0" Padding="6,2" Command="{Binding TimePlusCommand}" Content="Time +" />
                                 <TextBlock VerticalAlignment="Center" Text="Step" />
-                                <TextBox Width="38" Margin="4,0,2,0" Text="{Binding NudgeStep, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" ToolTip="Az/Alt step in degrees" />
+                                <TextBox Width="38" Margin="4,0,2,0" Text="{Binding NudgeStep, StringFormat=0.0#, UpdateSourceTrigger=LostFocus}" ToolTip="Az/Alt step in degrees" />
                                 <TextBlock VerticalAlignment="Center" Text="° " />
                                 <Button Margin="0,0,4,0" Padding="6,2" Command="{Binding AzMinusCommand}" Content="Az −" />
                                 <Button Margin="0,0,10,0" Padding="6,2" Command="{Binding AzPlusCommand}" Content="Az +" />

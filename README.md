@@ -68,6 +68,13 @@ On the Strip: mouse wheel zooms, left-drag pans, right-click resets the view.
   there. **Delete** / **Undo** as needed.
 - **Save** writes the `.hrz` and reloads it (red dots turn gray). Unsaved edits
   are lost until you Save.
+- **Vertical steps:** N.I.N.A. keeps only one altitude per azimuth. Place a
+  point straight above or below another and the plugin makes it a step: the
+  higher point stays, the lower one moves 0.01° to the open side.
+- 0° and 360° are separate points, so north can have a step too.
+- Give narrow obstructions some width (a few tenths of a degree): N.I.N.A.
+  and Target Scheduler check the target every few seconds, so a very thin
+  spike can fall between two checks.
 
 ## Two ways to work
 
@@ -115,7 +122,11 @@ flat panel and dust cover before open-sky slews.
 > finder during daytime work.
 
 Note: N.I.N.A. checks the frame **centre** against the horizon (it ignores
-sensor size and rotation).
+sensor size and rotation). Use the horizon offset in N.I.N.A.'s horizon
+conditions or Target Scheduler as a margin for the frame edges.
+
+**Target Scheduler:** tick **Use Custom Horizon** in each project, otherwise
+it ignores the `.hrz` and uses the project's Minimum Altitude only.
 
 ## Notes
 
