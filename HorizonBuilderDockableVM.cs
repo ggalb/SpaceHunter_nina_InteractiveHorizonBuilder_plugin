@@ -394,9 +394,11 @@ namespace InteractiveHorizonBuilder {
                     System.IO.File.Copy(path, backup, true);
                 }
                 Model.Save(path);
-                var settings = profileService.ActiveProfile.AstrometrySettings;
-                settings.Horizon = CustomHorizon.FromFilePath(path);
-                settings.HorizonFilePath = path;
+                if (!LinkInNina(path)) {
+                    EditStatus = $"Saved {System.IO.Path.GetFileName(path)}, but N.I.N.A. could not load it as its horizon";
+                    RaisePropertyChanged(nameof(HorizonFileLabel));
+                    return;
+                }
                 EditStatus = $"Saved {Model.Points.Count} points to {System.IO.Path.GetFileName(path)}"
                     + (backup != null ? $" (previous version kept as {System.IO.Path.GetFileName(backup)})" : "");
                 RaisePropertyChanged(nameof(HorizonFileLabel));
@@ -422,16 +424,18 @@ namespace InteractiveHorizonBuilder {
             if (dialog.ShowDialog() != true) return;
             var path = dialog.FileName;
 
-            CustomHorizon ninaHorizon;
+            // Check first: ChangeHorizon clears N.I.N.A.'s horizon if the file can't be read.
             try {
-                ninaHorizon = CustomHorizon.FromFilePath(path);
+                CustomHorizon.FromFilePath(path);
             } catch (Exception ex) {
                 EditStatus = $"N.I.N.A. can't use {System.IO.Path.GetFileName(path)}: {ex.Message}";
                 return;
             }
-            var settings = profileService.ActiveProfile.AstrometrySettings;
-            settings.Horizon = ninaHorizon;
-            settings.HorizonFilePath = path;
+            if (!LinkInNina(path)) {
+                EditStatus = $"N.I.N.A. could not load {System.IO.Path.GetFileName(path)} as its horizon";
+                RaisePropertyChanged(nameof(HorizonFileLabel));
+                return;
+            }
 
             Model = HorizonModel.Load(path, out var report);
             undoStack.Clear();
@@ -440,6 +444,16 @@ namespace InteractiveHorizonBuilder {
             EditStatus = report ?? $"Opened {System.IO.Path.GetFileName(path)} ({Model.Points.Count} points) - now N.I.N.A.'s horizon";
             RaisePropertyChanged(nameof(HorizonFileLabel));
             Bump();
+        }
+
+        /// <summary>
+        /// Makes <paramref name="path"/> N.I.N.A.'s horizon the way its Options page does
+        /// (IProfileService.ChangeHorizon): reloads it AND raises HorizonChanged, so Options, Sky Atlas,
+        /// Framing and sequencer targets pick up the new horizon. False if N.I.N.A. rejected the file.
+        /// </summary>
+        private bool LinkInNina(string path) {
+            profileService.ChangeHorizon(path);
+            return string.Equals(profileService.ActiveProfile.AstrometrySettings.HorizonFilePath, path, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string DirectoryOf(string path) {

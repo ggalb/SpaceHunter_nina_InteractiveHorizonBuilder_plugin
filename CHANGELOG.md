@@ -33,6 +33,9 @@ All notable changes to Interactive Horizon Builder. Versions follow
   `.hrz.bak`.
 - The file in use is shown under the status line. Save with no file linked
   opens Save As.
+- Save, Save As and Open now hand the horizon to N.I.N.A. the same way its
+  Options page does, so Options, Sky Atlas, Framing and sequencer targets
+  show the new horizon at once (before: after a restart).
 
 ## 0.1.0.0 - 2026-10-05
 
