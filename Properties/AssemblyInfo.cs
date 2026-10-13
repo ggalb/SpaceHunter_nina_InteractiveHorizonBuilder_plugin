@@ -36,21 +36,23 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("FeaturedImageURL", "https://raw.githubusercontent.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin/master/assets/Logo.png")]
 [assembly: AssemblyMetadata("ScreenshotURL", "")]
 [assembly: AssemblyMetadata("AltScreenshotURL", "")]
-[assembly: AssemblyMetadata("LongDescription", @"Creates and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. - by manual entry or with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly as N.I.N.A. reads it; edit points and Save to write the .hrz and reload it. No .hrz yet? Download template.hrz from GitHub (a flat line at 15° Alt) and link it in Options > General > Astrometry.
+[assembly: AssemblyMetadata("LongDescription", @"Creates and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. - by manual entry or with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly as N.I.N.A. reads it; edit points and Save to write the .hrz and reload it. No .hrz yet? Place two points and use Save As..., or Open... template.hrz from GitHub (a flat line at 15° Alt).
 
 Before you start
 - Rig polar aligned (a previous night's run or a permanent pier).
 - If using the rotator, know its sky position - ideally 0° = Landscape at start. The angle buttons move MECHANICAL degrees from 0°; watch for cables, the Losmandy plate and other obstacles while it turns.
-- Test on a COPY of your .hrz (Save overwrites in place). Link the copy in Options > General > Astrometry and restart N.I.N.A.
+- Test on a COPY of your .hrz: Open... the copy. Save also keeps the previous version as .hrz.bak (first save per session).
 - Connect your gear; open the panel from the Imaging tab, like any plug-in.
 
 The views
-Sky Dome (polar: zenith centre, N up / E right / S down / W left, rings 15-75°) and Strip (azimuth N-E-S-W-N, altitude 0-90) show the same horizon: brown = blocked, dark = open sky. Gray dots = saved, red = unsaved. Cyan = mount, white cross = crosshair (your working point / slew target). On the Strip the wheel zooms and right-click resets.
+Sky Dome (polar: zenith centre, N up / E right / S down / W left, rings 15-75°) and Strip (azimuth N-E-S-W-N, altitude 0-90) show the same horizon: brown = blocked, dark = open sky. Gray dots = saved, red = unsaved. Cyan = mount, white cross = crosshair (your working point / slew target). On the Strip the wheel zooms and right-click resets. The switch next to the title uses N.I.N.A.'s colour theme instead.
 
 Editing
 - Select a dot (its Az/Alt load into Target), or click empty sky to move the crosshair.
 - Place / Confirm adds a point at the crosshair, or moves the selected one there. Delete / Undo as needed.
 - Save writes the .hrz and reloads it (red dots turn gray). Unsaved edits are lost until you Save.
+- Save As... / Open...: use another .hrz; it becomes N.I.N.A.'s horizon.
+- Vertical steps: N.I.N.A. keeps one altitude per azimuth, so a point placed straight above or below another becomes a step 0.01° wide.
 
 Two ways to work
 A. Offline (no gear): paste a frame's RA/Dec + time from a log into RA/Dec -> Alt/Az and Convert -> crosshair. Time - increases and Time + decreases the clearance margin along the target's path; add points where it clears.
@@ -76,5 +78,5 @@ Notes: a scratchpad saved with your profile.")]
 
 // The single place to change the plugin version (see the rules at the top of this file).
 internal static class PluginVersion {
-    public const string Value = "0.1.3.0";
+    public const string Value = "0.2.0.0";
 }

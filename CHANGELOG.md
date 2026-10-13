@@ -8,22 +8,7 @@ All notable changes to Interactive Horizon Builder. Versions follow
 - **Patch** - bug fixes
 - **Build** - re-release of the same code (e.g. packaging/manifest fix)
 
-## 0.1.3.0 - unreleased
-
-- **Open...** loads any .hrz and **Save As...** saves to a new file; both make
-  that file N.I.N.A.'s horizon. Save As also creates a horizon from scratch.
-- The first save of a file per session keeps the previous version as
-  `.hrz.bak`.
-- The file in use is shown under the status line. Save with no file linked
-  opens Save As.
-
-## 0.1.2.1 - unreleased
-
-- Optional "Chart colours from N.I.N.A. theme" switch next to the title:
-  charts use N.I.N.A.'s colour schema, incl. the night (alternative) colours.
-  Off by default (the plugin's own colours).
-
-## 0.1.1.0 - unreleased
+## 0.2.0.0 - unreleased
 
 - Horizon views now use exactly the same calculation as N.I.N.A. (and Target
   Scheduler), including how N.I.N.A. closes the line at north when the file
@@ -39,6 +24,15 @@ All notable changes to Interactive Horizon Builder. Versions follow
 - Save refuses a horizon with fewer than 2 points (N.I.N.A. rejects it).
 - Az / Alt boxes show 2 decimals and keep what you type (applied when you
   leave the box); the nudge step accepts 0.01.
+- Optional "Chart colours from N.I.N.A. theme" switch next to the title:
+  charts use N.I.N.A.'s colour schema, incl. the night (alternative) colours.
+  Off by default (the plugin's own colours).
+- **Open...** loads any .hrz and **Save As...** saves to a new file; both make
+  that file N.I.N.A.'s horizon. Save As also creates a horizon from scratch.
+- The first save of a file per session keeps the previous version as
+  `.hrz.bak`.
+- The file in use is shown under the status line. Save with no file linked
+  opens Save As.
 
 ## 0.1.0.0 - 2026-10-05
 
