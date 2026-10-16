@@ -8,6 +8,12 @@ All notable changes to Interactive Horizon Builder. Versions follow
 - **Patch** - bug fixes
 - **Build** - re-release of the same code (e.g. packaging/manifest fix)
 
+## 0.2.0.1 - 2026-10-16
+
+- Plugin page now starts with a safety warning: the plugin moves real
+  equipment - test each control with the rig in view, never slew within 15°
+  of the Sun. No code changes.
+
 ## 0.2.0.0 - 2026-10-13
 
 - Horizon views now use exactly the same calculation as N.I.N.A. (and Target
