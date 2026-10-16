@@ -36,7 +36,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("FeaturedImageURL", "https://raw.githubusercontent.com/ggalb/SpaceHunter_nina_InteractiveHorizonBuilder_plugin/master/assets/Logo.png")]
 [assembly: AssemblyMetadata("ScreenshotURL", "")]
 [assembly: AssemblyMetadata("AltScreenshotURL", "")]
-[assembly: AssemblyMetadata("LongDescription", @"Creates and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. - by manual entry or with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly as N.I.N.A. reads it; edit points and Save to write the .hrz and reload it. No .hrz yet? Place two points and use Save As..., or Open... template.hrz from GitHub (a flat line at 15° Alt).
+[assembly: AssemblyMetadata("LongDescription", @"**⚠ WARNING - this plugin moves real equipment** (mount, rotator, focuser, covers). Test each control while you can see the rig, with STOP within reach, and watch for cable snags and collisions. **Never slew within 15° of the Sun** - the plugin only warns, it does not block. Use at your own risk - no warranty.
+
+Creates and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. - by manual entry or with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly as N.I.N.A. reads it; edit points and Save to write the .hrz and reload it. No .hrz yet? Place two points and use Save As..., or Open... template.hrz from GitHub (a flat line at 15° Alt).
 
 Before you start
 - Rig polar aligned (a previous night's run or a permanent pier).
