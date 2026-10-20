@@ -8,6 +8,16 @@ All notable changes to Interactive Horizon Builder. Versions follow
 - **Patch** - bug fixes
 - **Build** - re-release of the same code (e.g. packaging/manifest fix)
 
+## 0.2.1.0 - 2026-10-19
+
+- New **Stellarium...** button: exports the horizon as a Stellarium landscape
+  ZIP (ini + horizon list + transparent panorama), so Stellarium shows the same
+  horizon line as N.I.N.A. The ZIP file name becomes the landscape name; the
+  location comes from the N.I.N.A. profile (used when Stellarium's "Location
+  from landscape" is ticked).
+- Horizon line colour for the export is set on the plugin's Options page.
+- Open... / Save As... also list .txt horizon files.
+
 ## 0.2.0.1 - 2026-10-16
 
 - Plugin page now starts with a safety warning: the plugin moves real

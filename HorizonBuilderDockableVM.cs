@@ -103,6 +103,7 @@ namespace InteractiveHorizonBuilder {
             SaveCommand = new RelayCommand(Save);
             SaveAsCommand = new RelayCommand(SaveAs);
             OpenCommand = new RelayCommand(Open);
+            ExportStellariumCommand = new RelayCommand(ExportStellarium);
             AzMinusCommand = new RelayCommand(() => NudgeTarget(-NudgeStep, 0));
             AzPlusCommand = new RelayCommand(() => NudgeTarget(NudgeStep, 0));
             AltMinusCommand = new RelayCommand(() => NudgeTarget(0, -NudgeStep));
@@ -247,6 +248,7 @@ namespace InteractiveHorizonBuilder {
         public ICommand SaveCommand { get; }
         public ICommand SaveAsCommand { get; }
         public ICommand OpenCommand { get; }
+        public ICommand ExportStellariumCommand { get; }
         public ICommand AzMinusCommand { get; }
         public ICommand AzPlusCommand { get; }
         public ICommand AltMinusCommand { get; }
@@ -341,7 +343,7 @@ namespace InteractiveHorizonBuilder {
             Bump();
         }
 
-        private const string HrzFilter = "Horizon file (*.hrz)|*.hrz|All files (*.*)|*.*";
+        private const string HrzFilter = "Horizon file (*.hrz;*.txt)|*.hrz;*.txt|All files (*.*)|*.*";
         private readonly HashSet<string> backedUpThisSession = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>The .hrz the panel edits = the one linked in N.I.N.A. (Options > General > Astrometry).</summary>
@@ -444,6 +446,37 @@ namespace InteractiveHorizonBuilder {
             EditStatus = report ?? $"Opened {System.IO.Path.GetFileName(path)} ({Model.Points.Count} points) - now N.I.N.A.'s horizon";
             RaisePropertyChanged(nameof(HorizonFileLabel));
             Bump();
+        }
+
+        /// <summary>
+        /// Writes the horizon as a Stellarium landscape ZIP. The ZIP's file name becomes the landscape
+        /// name; line colour comes from the plugin Options page, location from the N.I.N.A. profile.
+        /// </summary>
+        private void ExportStellarium() {
+            if (Model.Points.Count < 2) {
+                EditStatus = "Need at least 2 points to export";
+                return;
+            }
+            var current = profileService.ActiveProfile.AstrometrySettings.HorizonFilePath;
+            var dialog = new Microsoft.Win32.SaveFileDialog {
+                Title = "Export horizon as Stellarium landscape",
+                Filter = "Stellarium landscape (*.zip)|*.zip",
+                DefaultExt = ".zip",
+                FileName = (string.IsNullOrWhiteSpace(current) ? "horizon" : System.IO.Path.GetFileNameWithoutExtension(current)) + ".zip",
+                InitialDirectory = DirectoryOf(current)
+            };
+            if (dialog.ShowDialog() != true) return;
+            try {
+                var name = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName);
+                var s = profileService.ActiveProfile.AstrometrySettings;
+                StellariumExport.Write(dialog.FileName, name, Model.Points.OrderBy(p => p.Azimuth),
+                    pluginSettings.GetValueString("StellariumLineColor", StellariumExport.DefaultLineColor),
+                    s.Latitude, s.Longitude, s.Elevation);
+                EditStatus = $"Exported {Model.Points.Count} points as Stellarium landscape '{name}'"
+                    + (Model.HasUnsaved ? " - includes unsaved (red) points; Save so N.I.N.A. matches" : "");
+            } catch (Exception ex) {
+                EditStatus = "Export error: " + ex.Message;
+            }
         }
 
         /// <summary>

@@ -220,7 +220,8 @@
                                 <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding UndoCommand}" Content="Undo" />
                                 <Button Margin="0,0,6,0" Padding="12,2" Command="{Binding SaveCommand}" Content="Save" ToolTip="Write the .hrz and reload it into N.I.N.A. The first save of a file per session keeps the previous version as .hrz.bak." />
                                 <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding SaveAsCommand}" Content="Save As..." ToolTip="Save to a new file and make it N.I.N.A.'s horizon (also creates a horizon from scratch)" />
-                                <Button Padding="10,2" Command="{Binding OpenCommand}" Content="Open..." ToolTip="Open any .hrz and make it N.I.N.A.'s horizon" />
+                                <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding OpenCommand}" Content="Open..." ToolTip="Open any .hrz and make it N.I.N.A.'s horizon" />
+                                <Button Padding="10,2" Command="{Binding ExportStellariumCommand}" Content="Stellarium..." ToolTip="Export this horizon as a Stellarium landscape ZIP (install it in Stellarium: Sky and viewing options > Landscape > Add/remove landscapes). The ZIP name becomes the landscape name; line colour is set on the plugin's Options page." />
                             </WrapPanel>
                             <TextBlock Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap" Text="{Binding EditStatus, StringFormat='{}{0}'}" />
                             <TextBlock Margin="0,2,0,0" Foreground="Gray" TextWrapping="Wrap" Text="{Binding HorizonFileLabel}" ToolTip="The .hrz linked in Options > General > Astrometry" />
