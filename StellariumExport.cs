@@ -73,13 +73,23 @@ namespace InteractiveHorizonBuilder {
             }
         }
 
+        /// <summary>
+        /// Same size/format as the hand-made landscape that is known to work (4096x1024 RGBA).
+        /// Encoded into a MemoryStream first: PngBitmapEncoder writes nothing into the
+        /// non-seekable ZIP entry stream (silently - the entry ended up 0 bytes).
+        /// </summary>
         private static void WriteTransparentPng(Stream s) {
-            const int w = 64, h = 32;
+            const int w = 4096, h = 1024;
             var pixels = new byte[w * h * 4]; // all zero = fully transparent
             var bmp = BitmapSource.Create(w, h, 96, 96, PixelFormats.Bgra32, null, pixels, w * 4);
             var enc = new PngBitmapEncoder();
             enc.Frames.Add(BitmapFrame.Create(bmp));
-            enc.Save(s);
+            using (var ms = new MemoryStream()) {
+                enc.Save(ms);
+                if (ms.Length == 0) throw new IOException("transparent PNG could not be created");
+                ms.Position = 0;
+                ms.CopyTo(s);
+            }
         }
 
         /// <summary>Stellarium's ini angle format, e.g. +33d47'52.55" (negative longitude = west).</summary>
