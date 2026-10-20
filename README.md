@@ -6,8 +6,8 @@ A [N.I.N.A.](https://nighttime-imaging.eu/) plugin that creates and edits
 N.I.N.A.'s custom horizon (`.hrz`) from inside N.I.N.A. - by manual entry or
 with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly
 as N.I.N.A. reads it; edit points and Save to write the `.hrz` and reload it.
-The same horizon can be exported as a Stellarium landscape, so both programs
-show the same line.
+The same horizon can be exported for Stellarium and Carte du Ciel, so they
+show the same line as N.I.N.A.
 
 By Space Hunter - Georg G Albrecht.
 
@@ -79,6 +79,7 @@ night colours.
   makes that file N.I.N.A.'s horizon (Options > General > Astrometry), so the
   panel always edits what N.I.N.A. uses. The file in use is shown under the
   status line.
+- The two export buttons sit at the top of the panel, next to the title.
 - **Stellarium...** exports the horizon as a Stellarium landscape ZIP, so
   Stellarium and N.I.N.A. show the same line. The ZIP's file name becomes the
   landscape name (e.g. `NINA_PS_Horizon_Line.zip`); the ZIP holds
@@ -89,6 +90,13 @@ night colours.
   colour is set in that Landscape tab (colour box next to *Draw only
   polygon*). To update a landscape, remove the old one first, install the new
   ZIP and restart Stellarium - otherwise it may keep showing the old one.
+- **Carte du Ciel...** saves the horizon as a Carte du Ciel horizon file
+  (`.txt`, one `azimuth altitude` pair per line). The dialog opens in
+  `C:\Program Files\Ciel\data\horizon`, but that folder is read-only for
+  normal users, so Windows may refuse the save. Either save it elsewhere (e.g.
+  Documents) - Carte du Ciel keeps the full path - or give your user write
+  access to that folder once. In Carte du Ciel select the file under
+  *Setup > Observatory > Horizon*.
 - **Vertical steps:** N.I.N.A. keeps only one altitude per azimuth. Place a
   point straight above or below another and the plugin makes it a step: the
   higher point stays, the lower one moves 0.01° to the open side.

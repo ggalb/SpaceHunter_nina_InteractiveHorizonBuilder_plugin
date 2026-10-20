@@ -39,6 +39,8 @@
                             <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Text="Interactive Horizon Builder" />
                             <TextBlock Margin="24,0,8,0" VerticalAlignment="Center" Foreground="Gray" Text="Chart colours from N.I.N.A. theme" />
                             <CheckBox VerticalAlignment="Center" IsChecked="{Binding FollowNinaTheme}" ToolTip="Off = the plugin's own chart colours (default). On = N.I.N.A.'s colour schema, incl. the night (alternative) colours." />
+                            <Button Margin="60,0,8,0" Padding="10,2" VerticalAlignment="Center" Command="{Binding ExportStellariumCommand}" Content="Stellarium..." ToolTip="Export this horizon as a Stellarium landscape ZIP (install it in Stellarium: Sky and viewing options > Landscape > Add/remove landscapes). The ZIP name becomes the landscape name. Line colour is set in Stellarium (Landscape tab). After re-installing a landscape with the same name, restart Stellarium." />
+                            <Button Padding="10,2" VerticalAlignment="Center" Command="{Binding ExportCdcCommand}" Content="Carte du Ciel..." ToolTip="Save this horizon as a Carte du Ciel horizon file (.txt). The dialog opens in C:\Program Files\Ciel\data\horizon - writing there needs write permission on that folder. In Carte du Ciel: Setup &gt; Observatory &gt; Horizon &gt; choose the file (Carte du Ciel keeps the full path, so any folder works)." />
                         </StackPanel>
 
                         <TextBlock Grid.Row="1" Margin="0,0,0,8" Foreground="Gray" Text="{Binding MountHeader}" />
@@ -220,8 +222,7 @@
                                 <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding UndoCommand}" Content="Undo" />
                                 <Button Margin="0,0,6,0" Padding="12,2" Command="{Binding SaveCommand}" Content="Save" ToolTip="Write the .hrz and reload it into N.I.N.A. The first save of a file per session keeps the previous version as .hrz.bak." />
                                 <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding SaveAsCommand}" Content="Save As..." ToolTip="Save to a new file and make it N.I.N.A.'s horizon (also creates a horizon from scratch)" />
-                                <Button Margin="0,0,6,0" Padding="10,2" Command="{Binding OpenCommand}" Content="Open..." ToolTip="Open any .hrz and make it N.I.N.A.'s horizon" />
-                                <Button Padding="10,2" Command="{Binding ExportStellariumCommand}" Content="Stellarium..." ToolTip="Export this horizon as a Stellarium landscape ZIP (install it in Stellarium: Sky and viewing options > Landscape > Add/remove landscapes). The ZIP name becomes the landscape name. Line colour is set in Stellarium (Landscape tab). After re-installing a landscape with the same name, restart Stellarium." />
+                                <Button Padding="10,2" Command="{Binding OpenCommand}" Content="Open..." ToolTip="Open any .hrz and make it N.I.N.A.'s horizon" />
                             </WrapPanel>
                             <TextBlock Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap" Text="{Binding EditStatus, StringFormat='{}{0}'}" />
                             <TextBlock Margin="0,2,0,0" Foreground="Gray" TextWrapping="Wrap" Text="{Binding HorizonFileLabel}" ToolTip="The .hrz linked in Options > General > Astrometry" />

@@ -16,6 +16,8 @@ All notable changes to Interactive Horizon Builder. Versions follow
   location comes from the N.I.N.A. profile (used when Stellarium's "Location
   from landscape" is ticked).
 - The line colour is chosen in Stellarium itself (Landscape tab).
+- New **Carte du Ciel...** button: saves the horizon as a Carte du Ciel
+  horizon file (.txt). Both export buttons sit at the top of the panel.
 - Open... / Save As... also list .txt horizon files.
 
 ## 0.2.0.1 - 2026-10-16

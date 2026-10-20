@@ -104,6 +104,7 @@ namespace InteractiveHorizonBuilder {
             SaveAsCommand = new RelayCommand(SaveAs);
             OpenCommand = new RelayCommand(Open);
             ExportStellariumCommand = new RelayCommand(ExportStellarium);
+            ExportCdcCommand = new RelayCommand(ExportCdc);
             AzMinusCommand = new RelayCommand(() => NudgeTarget(-NudgeStep, 0));
             AzPlusCommand = new RelayCommand(() => NudgeTarget(NudgeStep, 0));
             AltMinusCommand = new RelayCommand(() => NudgeTarget(0, -NudgeStep));
@@ -249,6 +250,7 @@ namespace InteractiveHorizonBuilder {
         public ICommand SaveAsCommand { get; }
         public ICommand OpenCommand { get; }
         public ICommand ExportStellariumCommand { get; }
+        public ICommand ExportCdcCommand { get; }
         public ICommand AzMinusCommand { get; }
         public ICommand AzPlusCommand { get; }
         public ICommand AltMinusCommand { get; }
@@ -473,6 +475,45 @@ namespace InteractiveHorizonBuilder {
                     s.Latitude, s.Longitude, s.Elevation);
                 EditStatus = $"Exported {Model.Points.Count} points as Stellarium landscape '{name}'"
                     + (Model.HasUnsaved ? " - includes unsaved (red) points; Save so N.I.N.A. matches" : "");
+            } catch (Exception ex) {
+                EditStatus = "Export error: " + ex.Message;
+            }
+        }
+
+        private const string CdcHorizonFolder = @"C:\Program Files\Ciel\data\horizon";
+
+        /// <summary>
+        /// Writes the horizon as a Carte du Ciel horizon file ("az alt" lines, '#' comments). The dialog
+        /// starts in Carte du Ciel's own horizon folder; that folder is read-only for normal users, so a
+        /// denied write is reported with what to do instead.
+        /// </summary>
+        private void ExportCdc() {
+            if (Model.Points.Count < 2) {
+                EditStatus = "Need at least 2 points to export";
+                return;
+            }
+            var current = profileService.ActiveProfile.AstrometrySettings.HorizonFilePath;
+            var dialog = new Microsoft.Win32.SaveFileDialog {
+                Title = "Export horizon for Carte du Ciel",
+                Filter = "Carte du Ciel horizon (*.txt)|*.txt",
+                DefaultExt = ".txt",
+                FileName = (string.IsNullOrWhiteSpace(current) ? "horizon" : System.IO.Path.GetFileNameWithoutExtension(current)) + ".txt",
+                InitialDirectory = System.IO.Directory.Exists(CdcHorizonFolder) ? CdcHorizonFolder : DirectoryOf(current)
+            };
+            if (dialog.ShowDialog() != true) return;
+            try {
+                using (var sw = new System.IO.StreamWriter(dialog.FileName, false)) {
+                    sw.WriteLine("# Horizon description file for Carte du Ciel");
+                    sw.WriteLine("# Exported by Interactive Horizon Builder (N.I.N.A.) " + DateTime.Now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+                    sw.WriteLine("# Azimuth Altitude");
+                    foreach (var p in Model.Points.OrderBy(p => p.Azimuth)) {
+                        sw.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0:0.##} {1:0.##}", p.Azimuth, p.Altitude));
+                    }
+                }
+                EditStatus = $"Exported {Model.Points.Count} points for Carte du Ciel to {System.IO.Path.GetFileName(dialog.FileName)}"
+                    + (Model.HasUnsaved ? " - includes unsaved (red) points; Save so N.I.N.A. matches" : "");
+            } catch (UnauthorizedAccessException) {
+                EditStatus = $"No write permission in {System.IO.Path.GetDirectoryName(dialog.FileName)} - save to another folder (e.g. Documents) and select it in Carte du Ciel (Setup > Observatory > Horizon), or give your user write access to that folder once";
             } catch (Exception ex) {
                 EditStatus = "Export error: " + ex.Message;
             }
