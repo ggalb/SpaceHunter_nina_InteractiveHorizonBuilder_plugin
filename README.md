@@ -81,8 +81,9 @@ night colours.
   status line.
 - The two export buttons sit at the top of the panel, next to the title.
 - **Stellarium...** exports the horizon as a Stellarium landscape ZIP, so
-  Stellarium and N.I.N.A. show the same line. The ZIP's file name becomes the
-  landscape name (e.g. `NINA_PS_Horizon_Line.zip`); the ZIP holds
+  Stellarium and N.I.N.A. show the same line. The ZIP is saved in the folder
+  of the current `.hrz` unless you choose another; its file name becomes the
+  landscape name (e.g. `NINA_PS_Horizon_Line.zip`). The ZIP holds
   `landscape.ini`, the horizon list and a transparent panorama, plus your
   N.I.N.A. location (used only if Stellarium's *Location from landscape* is
   ticked). Install it in Stellarium via *Sky and viewing options > Landscape >
