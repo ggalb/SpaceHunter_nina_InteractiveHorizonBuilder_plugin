@@ -15,7 +15,7 @@ All notable changes to Interactive Horizon Builder. Versions follow
   horizon line as N.I.N.A. The ZIP file name becomes the landscape name; the
   location comes from the N.I.N.A. profile (used when Stellarium's "Location
   from landscape" is ticked).
-- Horizon line colour for the export is set on the plugin's Options page.
+- The line colour is chosen in Stellarium itself (Landscape tab).
 - Open... / Save As... also list .txt horizon files.
 
 ## 0.2.0.1 - 2026-10-16

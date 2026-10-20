@@ -21,12 +21,9 @@ namespace InteractiveHorizonBuilder {
     /// </summary>
     internal static class StellariumExport {
 
-        public const string DefaultLineColor = ".55,.55,.10";
-
         /// <param name="name">Landscape name = folder name inside the ZIP = list file name.</param>
-        /// <param name="lineColor">"r,g,b" with values 0-1, as Stellarium expects.</param>
         public static void Write(string zipPath, string name, IEnumerable<HorizonPoint> points,
-                                 string lineColor, double latitude, double longitude, double elevation) {
+                                 double latitude, double longitude, double elevation) {
             var listName = name + ".txt";
             var list = new StringBuilder();
             foreach (var p in points) {
@@ -48,7 +45,9 @@ namespace InteractiveHorizonBuilder {
             ini.AppendLine("polygonal_horizon_list = " + listName);
             ini.AppendLine("polygonal_angle_rotatez = 0.00001");
             ini.AppendLine("polygonal_horizon_list_mode = azDeg_altDeg");
-            ini.AppendLine("horizon_line_color = " + (string.IsNullOrWhiteSpace(lineColor) ? DefaultLineColor : lineColor.Trim()));
+            // Stellarium needs it to draw the line at all; current versions show it in the colour set
+            // in Stellarium's own Landscape tab, so this value is not exposed as a setting.
+            ini.AppendLine("horizon_line_color = .55,.55,.10");
             ini.AppendLine();
             // Only used when "Location from landscape" is ticked in Stellarium.
             ini.AppendLine("[location]");

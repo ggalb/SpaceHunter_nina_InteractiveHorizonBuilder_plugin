@@ -450,7 +450,7 @@ namespace InteractiveHorizonBuilder {
 
         /// <summary>
         /// Writes the horizon as a Stellarium landscape ZIP. The ZIP's file name becomes the landscape
-        /// name; line colour comes from the plugin Options page, location from the N.I.N.A. profile.
+        /// name; location comes from the N.I.N.A. profile.
         /// </summary>
         private void ExportStellarium() {
             if (Model.Points.Count < 2) {
@@ -470,7 +470,6 @@ namespace InteractiveHorizonBuilder {
                 var name = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName);
                 var s = profileService.ActiveProfile.AstrometrySettings;
                 StellariumExport.Write(dialog.FileName, name, Model.Points.OrderBy(p => p.Azimuth),
-                    pluginSettings.GetValueString("StellariumLineColor", StellariumExport.DefaultLineColor),
                     s.Latitude, s.Longitude, s.Elevation);
                 EditStatus = $"Exported {Model.Points.Count} points as Stellarium landscape '{name}'"
                     + (Model.HasUnsaved ? " - includes unsaved (red) points; Save so N.I.N.A. matches" : "");
