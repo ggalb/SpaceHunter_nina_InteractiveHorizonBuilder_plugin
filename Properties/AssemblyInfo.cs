@@ -82,5 +82,5 @@ Notes: a scratchpad saved with your profile.")]
 
 // The single place to change the plugin version (see the rules at the top of this file).
 internal static class PluginVersion {
-    public const string Value = "0.2.1.6";
+    public const string Value = "0.2.1.7";
 }

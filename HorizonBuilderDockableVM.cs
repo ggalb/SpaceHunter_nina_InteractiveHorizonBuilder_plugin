@@ -529,6 +529,11 @@ namespace InteractiveHorizonBuilder {
         /// elevated cmd (UAC prompt). True if the file arrived; otherwise EditStatus says why.
         /// </summary>
         private bool CopyElevated(string text, string target) {
+            // cmd expands %VAR% even inside quotes - never pass such a path to an elevated command.
+            if (target.Contains("%")) {
+                EditStatus = "Not saved - file names with '%' can't be copied with administrator permission. Choose another name.";
+                return false;
+            }
             var temp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "IHB_" + Guid.NewGuid().ToString("N") + ".txt");
             try {
                 System.IO.File.WriteAllText(temp, text);
@@ -539,7 +544,12 @@ namespace InteractiveHorizonBuilder {
                 };
                 using (var proc = System.Diagnostics.Process.Start(psi)) {
                     proc.WaitForExit(30000);
-                    if (proc.HasExited && proc.ExitCode == 0 && System.IO.File.Exists(target)) return true;
+                    // Compare with what we meant to write, so a temp file altered in between is noticed.
+                    if (proc.HasExited && proc.ExitCode == 0 && System.IO.File.Exists(target)) {
+                        if (System.IO.File.ReadAllText(target) == text) return true;
+                        EditStatus = $"Warning: {System.IO.Path.GetFileName(target)} does not contain the exported horizon - export again";
+                        return false;
+                    }
                 }
                 EditStatus = $"Copy into {System.IO.Path.GetDirectoryName(target)} failed - save to another folder and select it in Carte du Ciel (Setup > Observatory > Horizon)";
             } catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223) {
