@@ -92,11 +92,11 @@ night colours.
   ZIP and restart Stellarium - otherwise it may keep showing the old one.
 - **Carte du Ciel...** saves the horizon as a Carte du Ciel horizon file
   (`.txt`, one `azimuth altitude` pair per line). The dialog opens in
-  `C:\Program Files\Ciel\data\horizon`, but that folder is read-only for
-  normal users, so Windows may refuse the save. Either save it elsewhere (e.g.
-  Documents) - Carte du Ciel keeps the full path - or give your user write
-  access to that folder once. In Carte du Ciel select the file under
-  *Setup > Observatory > Horizon*.
+  `C:\Program Files\Ciel\data\horizon`. That folder needs administrator
+  permission, so Windows asks (UAC prompt, as when copying there in
+  Explorer): *Yes* saves the file there, *No* saves nothing. You can also save
+  anywhere else - Carte du Ciel keeps the full path. In Carte du Ciel select
+  the file under *Setup > Observatory > Horizon*.
 - **Vertical steps:** N.I.N.A. keeps only one altitude per azimuth. Place a
   point straight above or below another and the plugin makes it a step: the
   higher point stays, the lower one moves 0.01° to the open side.

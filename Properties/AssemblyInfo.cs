@@ -55,7 +55,7 @@ Editing
 - Save writes the .hrz and reloads it (red dots turn gray). Unsaved edits are lost until you Save.
 - Save As... / Open...: use another .hrz; it becomes N.I.N.A.'s horizon.
 - Stellarium...: saves the horizon as a landscape ZIP; the ZIP name becomes the landscape name. In Stellarium: Sky and viewing options > Landscape > Add/remove landscapes > Install from ZIP. Set the line colour there (colour box next to ""Draw only polygon""). Re-installing under the same name: remove the old one first, then restart Stellarium.
-- Carte du Ciel...: saves the horizon as a .txt; the dialog opens in C:\Program Files\Ciel\data\horizon. That folder is read-only for normal users - if the save is refused, save elsewhere (e.g. Documents) and pick the file in Carte du Ciel: Setup > Observatory > Horizon.
+- Carte du Ciel...: saves the horizon as a .txt; the dialog opens in C:\Program Files\Ciel\data\horizon. That folder needs administrator permission: Windows asks (UAC) - Yes saves it there; No saves nothing (then save elsewhere and pick the file in Carte du Ciel: Setup > Observatory > Horizon).
 - Vertical steps: N.I.N.A. keeps one altitude per azimuth, so a point placed straight above or below another becomes a step 0.01° wide.
 
 Two ways to work
@@ -82,5 +82,5 @@ Notes: a scratchpad saved with your profile.")]
 
 // The single place to change the plugin version (see the rules at the top of this file).
 internal static class PluginVersion {
-    public const string Value = "0.2.1.4";
+    public const string Value = "0.2.1.5";
 }

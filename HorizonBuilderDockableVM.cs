@@ -484,8 +484,9 @@ namespace InteractiveHorizonBuilder {
 
         /// <summary>
         /// Writes the horizon as a Carte du Ciel horizon file ("az alt" lines, '#' comments). The dialog
-        /// starts in Carte du Ciel's own horizon folder; that folder is read-only for normal users, so a
-        /// denied write is reported with what to do instead.
+        /// starts in Carte du Ciel's own horizon folder. That folder is read-only for normal users, so a
+        /// denied write is retried like Explorer does it: the file goes to %TEMP% and an elevated copy
+        /// puts it in place (Windows shows its UAC prompt; No = nothing written).
         /// </summary>
         private void ExportCdc() {
             if (Model.Points.Count < 2) {
@@ -501,22 +502,51 @@ namespace InteractiveHorizonBuilder {
                 InitialDirectory = System.IO.Directory.Exists(CdcHorizonFolder) ? CdcHorizonFolder : DirectoryOf(current)
             };
             if (dialog.ShowDialog() != true) return;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("# Horizon description file for Carte du Ciel");
+            sb.AppendLine("# Exported by Interactive Horizon Builder (N.I.N.A.) " + DateTime.Now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+            sb.AppendLine("# Azimuth Altitude");
+            foreach (var p in Model.Points.OrderBy(p => p.Azimuth)) {
+                sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0:0.##} {1:0.##}", p.Azimuth, p.Altitude));
+            }
+            var done = $"Exported {Model.Points.Count} points for Carte du Ciel to {System.IO.Path.GetFileName(dialog.FileName)}"
+                + (Model.HasUnsaved ? " - includes unsaved (red) points; Save so N.I.N.A. matches" : "");
             try {
-                using (var sw = new System.IO.StreamWriter(dialog.FileName, false)) {
-                    sw.WriteLine("# Horizon description file for Carte du Ciel");
-                    sw.WriteLine("# Exported by Interactive Horizon Builder (N.I.N.A.) " + DateTime.Now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
-                    sw.WriteLine("# Azimuth Altitude");
-                    foreach (var p in Model.Points.OrderBy(p => p.Azimuth)) {
-                        sw.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0:0.##} {1:0.##}", p.Azimuth, p.Altitude));
-                    }
-                }
-                EditStatus = $"Exported {Model.Points.Count} points for Carte du Ciel to {System.IO.Path.GetFileName(dialog.FileName)}"
-                    + (Model.HasUnsaved ? " - includes unsaved (red) points; Save so N.I.N.A. matches" : "");
+                System.IO.File.WriteAllText(dialog.FileName, sb.ToString());
+                EditStatus = done;
             } catch (UnauthorizedAccessException) {
-                EditStatus = $"No write permission in {System.IO.Path.GetDirectoryName(dialog.FileName)} - save to another folder (e.g. Documents) and select it in Carte du Ciel (Setup > Observatory > Horizon), or give your user write access to that folder once";
+                EditStatus = CopyElevated(sb.ToString(), dialog.FileName) ? done + " (with administrator permission)" : EditStatus;
             } catch (Exception ex) {
                 EditStatus = "Export error: " + ex.Message;
             }
+        }
+
+        /// <summary>
+        /// Writes <paramref name="text"/> to %TEMP%, then copies it to <paramref name="target"/> through an
+        /// elevated cmd (UAC prompt). True if the file arrived; otherwise EditStatus says why.
+        /// </summary>
+        private bool CopyElevated(string text, string target) {
+            var temp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "IHB_" + Guid.NewGuid().ToString("N") + ".txt");
+            try {
+                System.IO.File.WriteAllText(temp, text);
+                var psi = new System.Diagnostics.ProcessStartInfo("cmd.exe", $"/c copy /Y \"{temp}\" \"{target}\"") {
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                };
+                using (var proc = System.Diagnostics.Process.Start(psi)) {
+                    proc.WaitForExit(30000);
+                    if (proc.HasExited && proc.ExitCode == 0 && System.IO.File.Exists(target)) return true;
+                }
+                EditStatus = $"Copy into {System.IO.Path.GetDirectoryName(target)} failed - save to another folder and select it in Carte du Ciel (Setup > Observatory > Horizon)";
+            } catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223) {
+                EditStatus = "Not saved - administrator permission was declined. Save to another folder (e.g. Documents) and select it in Carte du Ciel (Setup > Observatory > Horizon)";
+            } catch (Exception ex) {
+                EditStatus = "Export error: " + ex.Message;
+            } finally {
+                try { System.IO.File.Delete(temp); } catch { }
+            }
+            return false;
         }
 
         /// <summary>

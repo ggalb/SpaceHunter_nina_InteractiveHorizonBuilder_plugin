@@ -17,7 +17,9 @@ All notable changes to Interactive Horizon Builder. Versions follow
   from landscape" is ticked).
 - The line colour is chosen in Stellarium itself (Landscape tab).
 - New **Carte du Ciel...** button: saves the horizon as a Carte du Ciel
-  horizon file (.txt). Both export buttons sit at the top of the panel.
+  horizon file (.txt). Saving into Carte du Ciel's folder under Program
+  Files asks for administrator permission (UAC). Both export buttons sit at
+  the top of the panel.
 - Open... / Save As... also list .txt horizon files.
 
 ## 0.2.0.1 - 2026-10-16
