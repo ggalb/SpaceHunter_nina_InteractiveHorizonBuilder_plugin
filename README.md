@@ -6,6 +6,8 @@ A [N.I.N.A.](https://nighttime-imaging.eu/) plugin that creates and edits
 N.I.N.A.'s custom horizon (`.hrz`) from inside N.I.N.A. - by manual entry or
 with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly
 as N.I.N.A. reads it; edit points and Save to write the `.hrz` and reload it.
+The same horizon can be exported as a Stellarium landscape, so both programs
+show the same line.
 
 By Space Hunter - Georg G Albrecht.
 
@@ -77,6 +79,16 @@ night colours.
   makes that file N.I.N.A.'s horizon (Options > General > Astrometry), so the
   panel always edits what N.I.N.A. uses. The file in use is shown under the
   status line.
+- **Stellarium...** exports the horizon as a Stellarium landscape ZIP, so
+  Stellarium and N.I.N.A. show the same line. The ZIP's file name becomes the
+  landscape name (e.g. `NINA_PS_Horizon_Line.zip`); the ZIP holds
+  `landscape.ini`, the horizon list and a transparent panorama, plus your
+  N.I.N.A. location (used only if Stellarium's *Location from landscape* is
+  ticked). Install it in Stellarium via *Sky and viewing options > Landscape >
+  Add/remove landscapes > Install a new landscape from a ZIP archive*. The line
+  colour is set in that Landscape tab (colour box next to *Draw only
+  polygon*). To update a landscape, remove the old one first, install the new
+  ZIP and restart Stellarium - otherwise it may keep showing the old one.
 - **Vertical steps:** N.I.N.A. keeps only one altitude per azimuth. Place a
   point straight above or below another and the plugin makes it a step: the
   higher point stays, the lower one moves 0.01° to the open side.

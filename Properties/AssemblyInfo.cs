@@ -38,7 +38,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("AltScreenshotURL", "")]
 [assembly: AssemblyMetadata("LongDescription", @"**⚠ WARNING - this plugin moves real equipment** (mount, rotator, focuser, covers). Test each control while you can see the rig, with STOP within reach, and watch for cable snags and collisions. **Never slew within 15° of the Sun** - the plugin only warns, it does not block. Use at your own risk - no warranty.
 
-Creates and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. - by manual entry or with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly as N.I.N.A. reads it; edit points and Save to write the .hrz and reload it. No .hrz yet? Place two points and use Save As..., or Open... template.hrz from GitHub (a flat line at 15° Alt).
+Creates and edits N.I.N.A.'s custom horizon (.hrz) from inside N.I.N.A. - by manual entry or with your connected gear. Two views (Sky Dome + Strip) show the horizon exactly as N.I.N.A. reads it; edit points and Save to write the .hrz and reload it. Stellarium... exports the same horizon as a Stellarium landscape, so both programs show the same line. No .hrz yet? Place two points and use Save As..., or Open... template.hrz from GitHub (a flat line at 15° Alt).
 
 Before you start
 - Rig polar aligned (a previous night's run or a permanent pier).
@@ -54,6 +54,7 @@ Editing
 - Place / Confirm adds a point at the crosshair, or moves the selected one there. Delete / Undo as needed.
 - Save writes the .hrz and reloads it (red dots turn gray). Unsaved edits are lost until you Save.
 - Save As... / Open...: use another .hrz; it becomes N.I.N.A.'s horizon.
+- Stellarium...: saves the horizon as a landscape ZIP; the ZIP name becomes the landscape name. In Stellarium: Sky and viewing options > Landscape > Add/remove landscapes > Install from ZIP. Set the line colour there (colour box next to ""Draw only polygon""). Re-installing under the same name: remove the old one first, then restart Stellarium.
 - Vertical steps: N.I.N.A. keeps one altitude per azimuth, so a point placed straight above or below another becomes a step 0.01° wide.
 
 Two ways to work
@@ -80,5 +81,5 @@ Notes: a scratchpad saved with your profile.")]
 
 // The single place to change the plugin version (see the rules at the top of this file).
 internal static class PluginVersion {
-    public const string Value = "0.2.1.2";
+    public const string Value = "0.2.1.3";
 }
