@@ -499,7 +499,10 @@ namespace InteractiveHorizonBuilder {
                 Filter = "Carte du Ciel horizon (*.txt)|*.txt",
                 DefaultExt = ".txt",
                 FileName = (string.IsNullOrWhiteSpace(current) ? "horizon" : System.IO.Path.GetFileNameWithoutExtension(current)) + ".txt",
-                InitialDirectory = System.IO.Directory.Exists(CdcHorizonFolder) ? CdcHorizonFolder : DirectoryOf(current)
+                InitialDirectory = System.IO.Directory.Exists(CdcHorizonFolder) ? CdcHorizonFolder : DirectoryOf(current),
+                // No test write: in the protected Program Files folder it fails and the dialog itself
+                // refuses the location; the write (elevated if needed) happens below.
+                CreateTestFile = false
             };
             if (dialog.ShowDialog() != true) return;
             var sb = new System.Text.StringBuilder();
