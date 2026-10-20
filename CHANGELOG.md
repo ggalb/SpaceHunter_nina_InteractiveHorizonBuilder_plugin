@@ -8,7 +8,7 @@ All notable changes to Interactive Horizon Builder. Versions follow
 - **Patch** - bug fixes
 - **Build** - re-release of the same code (e.g. packaging/manifest fix)
 
-## 0.2.1.0 - 2026-10-19
+## 0.2.2.0 - 2026-10-20
 
 - New **Stellarium...** button: exports the horizon as a Stellarium landscape
   ZIP (ini + horizon list + transparent panorama), so Stellarium shows the same
